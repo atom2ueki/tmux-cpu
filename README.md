@@ -62,40 +62,26 @@ set -g status-right '#{cpu_bg_color} CPU: #{cpu_icon} #{cpu_percentage} | %a %h-
 
 ### Supported Options
 
-This is done by introducing 12 new format strings that can be added to
+This is done by introducing format strings that can be added to
 `status-right` option:
 
-- `#{cpu_icon}` - will display a CPU status icon
+- `#{cpu_icon}` - will display a CPU usage progress bar (colored based on load)
 - `#{cpu_percentage}` - will show CPU percentage (averaged across cores)
-- `#{cpu_bg_color}` - will change the background color based on the CPU percentage
-- `#{cpu_fg_color}` - will change the foreground color based on the CPU percentage
-- `#{ram_icon}` - will display a RAM status icon
+- `#{ram_icon}` - will display a RAM usage progress bar (colored based on usage)
 - `#{ram_percentage}` - will show RAM percentage (averaged across cores)
-- `#{ram_bg_color}` - will change the background color based on the RAM percentage
-- `#{ram_fg_color}` - will change the foreground color based on the RAM percentage
 - `#{ram_usage}` - will show RAM usage in GB or MB
 - `#{total_ram}` - will show total RAM available in GB or MB
-- `#{cpu_temp_icon}` - will display a CPU temperature status icon
-- `#{cpu_temp}` - will show CPU temperature (averaged across cores)
-- `#{cpu_temp_bg_color}` - will change the background color based on the CPU temperature
-- `#{cpu_temp_fg_color}` - will change the foreground color based on the CPU temperature
+- `#{cpu_temp}` - will show CPU temperature (averaged across cores, colored based on temperature)
 
 GPU equivalents also exist:
 
-- `#{gpu_icon}` - will display a GPU status icon
+- `#{gpu_icon}` - will display a GPU usage progress bar (colored based on load)
 - `#{gpu_percentage}` - will show GPU percentage (averaged across devices)
-- `#{gpu_bg_color}` - will change the background color based on the GPU percentage
-- `#{gpu_fg_color}` - will change the foreground color based on the GPU percentage
-- `#{gram_icon}` - will display a GPU RAM status icon
+- `#{gram_icon}` - will display a GPU RAM usage progress bar (colored based on usage)
 - `#{gram_percentage}` - will show GPU RAM percentage (total across devices)
-- `#{gram_bg_color}` - will change the background color based on the GPU RAM percentage
-- `#{gram_fg_color}` - will change the foreground color based on the GPU RAM percentage
 - `#{gram_usage}` - will show GPU RAM usage in GB or MB
 - `#{total_gram}` - will show total GPU RAM available in GB or MB
-- `#{gpu_temp_icon}` - will display a GPU temperature status icon
-- `#{gpu_temp}` - will show GPU temperature (average across devices)
-- `#{gpu_temp_bg_color}` - will change the background color based on the GPU temperature
-- `#{gpu_temp_fg_color}` - will change the foreground color based on the GPU temperature
+- `#{gpu_temp}` - will show GPU temperature (average across devices, colored based on temperature)
 
 ## Examples
 
@@ -119,24 +105,24 @@ CPU usage higher than 80%:<br/>
 Here are all available options with their default values:
 
 ```shell
-@cpu_low_icon "=" # icon when cpu is low
-@cpu_medium_icon "≡" # icon when cpu is medium
-@cpu_high_icon "≣" # icon when cpu is high
+# Progress bar settings (for cpu, gpu, ram, gram icons)
+@cpu_progress_length "10" # length of the progress bar
+@cpu_progress_char "|" # character for the filled portion of the bar
+@cpu_empty_char " " # character for the empty portion of the bar
+@cpu_left_bracket "[" # left bracket for the progress bar
+@cpu_right_bracket "]" # right bracket for the progress bar
 
-@cpu_low_fg_color "" # foreground color when cpu is low
-@cpu_medium_fg_color "" # foreground color when cpu is medium
-@cpu_high_fg_color "" # foreground color when cpu is high
-
-@cpu_low_bg_color "#[bg=green]" # background color when cpu is low
-@cpu_medium_bg_color "#[bg=yellow]" # background color when cpu is medium
-@cpu_high_bg_color "#[bg=red]" # background color when cpu is high
+# Color settings
+@cpu_low_color "#[fg=green]" # color when usage is low
+@cpu_medium_color "#[fg=yellow]" # color when usage is medium
+@cpu_high_color "#[fg=red]" # color when usage is high
 
 @cpu_percentage_format "%3.1f%%" # printf format to use to display percentage
 
 @cpu_medium_thresh "30" # medium percentage threshold
 @cpu_high_thresh "80" # high percentage threshold
 
-@ram_(low_icon,high_bg_color,etc...) # same defaults as above
+@ram_(progress_length,high_color,etc...) # same defaults as above
 
 @cpu_temp_format "%2.0f" # printf format to use to display temperature
 @cpu_temp_scale "C" # temperature scale, supports C or F (unit will display as °C or °F)
@@ -144,7 +130,7 @@ Here are all available options with their default values:
 @cpu_temp_medium_thresh "80" # medium temperature threshold
 @cpu_temp_high_thresh "90" # high temperature threshold
 
-@cpu_temp_(low_icon,high_bg_color,etc...) # same defaults as above
+@cpu_temp_(low_color,medium_color,high_color) # controls temperature text colors
 
 @ram_usage_format "%3.1f" # printf format for RAM usage display (without unit)
 @ram_unit "GB" # unit for RAM display, either "GB" or "MB"
@@ -160,8 +146,10 @@ Note that these colors depend on your terminal / X11 config.
 You can can customize each one of these options in your `.tmux.conf`, for example:
 
 ```shell
-set -g @cpu_low_fg_color "#[fg=#00ff00]"
+set -g @cpu_low_color "#[fg=#00ff00]" # Set a custom color for low CPU usage
 set -g @cpu_percentage_format "%5.1f%%" # Add left padding
+set -g @cpu_progress_char "■" # Use a different character for the progress bar
+set -g @cpu_progress_length "8" # Set a custom length for progress bars
 set -g @cpu_temp_scale "F" # Use Fahrenheit temperature scale (will display as °F)
 ```
 

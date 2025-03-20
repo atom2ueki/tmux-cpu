@@ -5,62 +5,82 @@ CURRENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=scripts/helpers.sh
 source "$CURRENT_DIR/helpers.sh"
 
-# script global variables
-tier1_icon=""
-tier2_icon=""
-tier3_icon=""
-tier4_icon=""
-tier5_icon=""
-tier6_icon=""
-tier7_icon=""
-tier8_icon=""
+# Color settings
+low_color=""
+medium_color=""
+high_color=""
 
-tier1_default_icon="▁"
-tier2_default_icon="▂"
-tier3_default_icon="▃"
-tier4_default_icon="▄"
-tier5_default_icon="▅"
-tier6_default_icon="▆"
-tier7_default_icon="▇"
-tier8_default_icon="█"
+low_default_color="#[fg=green]"
+medium_default_color="#[fg=yellow]"
+high_default_color="#[fg=red]"
 
-# icons are set as script global variables
-get_icon_settings() {
-  tier1_icon=$(get_tmux_option "@tier1_icon" "$tier1_default_icon")
-  tier2_icon=$(get_tmux_option "@tier2_icon" "$tier2_default_icon")
-  tier3_icon=$(get_tmux_option "@tier3_icon" "$tier3_default_icon")
-  tier4_icon=$(get_tmux_option "@tier4_icon" "$tier4_default_icon")
-  tier5_icon=$(get_tmux_option "@tier5_icon" "$tier5_default_icon")
-  tier6_icon=$(get_tmux_option "@tier6_icon" "$tier6_default_icon")
-  tier7_icon=$(get_tmux_option "@tier7_icon" "$tier7_default_icon")
-  tier8_icon=$(get_tmux_option "@tier8_icon" "$tier8_default_icon")
+# Progress bar settings
+progress_bar_length=10
+progress_char="|"
+empty_char=" "
+left_bracket="["
+right_bracket="]"
+
+get_settings() {
+  # Get color settings
+  low_color=$(get_tmux_option "@gpu_low_color" "$low_default_color")
+  medium_color=$(get_tmux_option "@gpu_medium_color" "$medium_default_color")
+  high_color=$(get_tmux_option "@gpu_high_color" "$high_default_color")
+  
+  # Get progress bar settings
+  progress_bar_length=$(get_tmux_option "@gpu_progress_length" "$progress_bar_length")
+  progress_char=$(get_tmux_option "@gpu_progress_char" "$progress_char")
+  empty_char=$(get_tmux_option "@gpu_empty_char" "$empty_char")
+  left_bracket=$(get_tmux_option "@gpu_left_bracket" "$left_bracket")
+  right_bracket=$(get_tmux_option "@gpu_right_bracket" "$right_bracket")
 }
 
 print_icon() {
   local gpu_percentage
   gpu_percentage=$("$CURRENT_DIR"/gpu_percentage.sh | sed -e 's/%//' | cut -d '.' -f 1)
   
-  if [ "$gpu_percentage" -ge 95 ]; then
-    echo "$tier8_icon"
-  elif [ "$gpu_percentage" -ge 80 ]; then
-    echo "$tier7_icon"
-  elif [ "$gpu_percentage" -ge 65 ]; then
-    echo "$tier6_icon"
-  elif [ "$gpu_percentage" -ge 50 ]; then
-    echo "$tier5_icon"
-  elif [ "$gpu_percentage" -ge 35 ]; then
-    echo "$tier4_icon"
-  elif [ "$gpu_percentage" -ge 20 ]; then
-    echo "$tier3_icon"
-  elif [ "$gpu_percentage" -ge 5 ]; then
-    echo "$tier2_icon"
+  # Determine color based on percentage thresholds
+  local icon_color=""
+  local medium_thresh=$(get_tmux_option "@gpu_medium_thresh" "30")
+  local high_thresh=$(get_tmux_option "@gpu_high_thresh" "80")
+  
+  if [ "$gpu_percentage" -ge "$high_thresh" ]; then
+    icon_color="$high_color"
+  elif [ "$gpu_percentage" -ge "$medium_thresh" ]; then
+    icon_color="$medium_color"
   else
-    echo "$tier1_icon"
+    icon_color="$low_color"
   fi
+  
+  # Calculate progress bar
+  local filled_count=$((gpu_percentage * progress_bar_length / 100))
+  if [ "$filled_count" -gt "$progress_bar_length" ]; then
+    filled_count=$progress_bar_length
+  fi
+  
+  local empty_count=$((progress_bar_length - filled_count))
+  
+  # Build progress bar
+  local progress_bar="$left_bracket"
+  
+  # Add filled section
+  for ((i=0; i<filled_count; i++)); do
+    progress_bar="${progress_bar}${progress_char}"
+  done
+  
+  # Add empty section
+  for ((i=0; i<empty_count; i++)); do
+    progress_bar="${progress_bar}${empty_char}"
+  done
+  
+  progress_bar="${progress_bar}${right_bracket}"
+  
+  # Output the colored progress bar
+  echo "${icon_color}${progress_bar}#[fg=default]"
 }
 
 main() {
-  get_icon_settings
+  get_settings
   print_icon "$1"
 }
 main "$@"
