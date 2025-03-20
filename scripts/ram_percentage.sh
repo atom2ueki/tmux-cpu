@@ -8,22 +8,11 @@ source "$CURRENT_DIR/helpers.sh"
 ram_percentage_format="%3.1f%%"
 
 get_ram_percentage() {
-  # Get RAM data directly from ram_usage.sh
-  local used_output
-  local total_output
-  
-  # Strip any units from the output
-  used_output=$("$CURRENT_DIR"/ram_usage.sh | tr -d 'GM')
-  total_output=$("$CURRENT_DIR"/ram_usage.sh total | tr -d 'GM')
-  
-  # Ensure values are valid
-  if [[ -z "$used_output" || -z "$total_output" || "$total_output" == "0" ]]; then
+  if command_exists "free"; then
+    cached_eval free | awk -v format="%3.1f" '$1 ~ /Mem/ {printf(format, 100*$3/$2)}'
+  else
     echo "0"
-    return
   fi
-  
-  # Calculate percentage
-  echo "scale=1; 100 * $used_output / $total_output" | bc
 }
 
 print_ram_percentage() {
@@ -33,29 +22,17 @@ print_ram_percentage() {
   local percentage
   percentage=$(get_ram_percentage)
   
-  # Ensure percentage is valid
-  if [[ -z "$percentage" ]]; then
-    percentage=0
-  fi
-  
-  # Sanity check - ensure percentage is not over 100
-  if (( $(echo "$percentage > 100" | bc -l) )); then
-    percentage=100
-  fi
-  
   # Format the percentage
   printf "$ram_percentage_format" "$percentage"
-  
-  # Ensure output ends with a newline
-  echo ""
 }
 
 # Print raw percentage value for the load bar component
 print_raw_ram_percentage() {
-  get_ram_percentage
-  
-  # Ensure output ends with a newline
-  echo ""
+  if command_exists "free"; then
+    cached_eval free | awk '$1 ~ /Mem/ {print 100*$3/$2}'
+  else
+    echo "0"
+  fi
 }
 
 main() {

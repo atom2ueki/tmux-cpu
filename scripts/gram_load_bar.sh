@@ -2,35 +2,29 @@
 
 CURRENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# shellcheck source=scripts/helpers.sh
-source "$CURRENT_DIR/helpers.sh"
+# Get total GRAM information
+total_gram=$("$CURRENT_DIR"/gram_usage.sh total)
 
-print_load_bar() {
-  # Get VRAM usage values
-  local gram_usage
-  local total_gram
-  local gram_percentage
-  
-  gram_usage=$("$CURRENT_DIR"/gram_usage.sh)
-  total_gram=$("$CURRENT_DIR"/gram_usage.sh total)
-  gram_percentage=$("$CURRENT_DIR"/gram_percentage.sh raw)
-  
-  # Strip newlines from all values
-  gram_usage=$(echo -n "$gram_usage" | tr -d '\n')
-  total_gram=$(echo -n "$total_gram" | tr -d '\n')
-  gram_percentage=$(echo -n "$gram_percentage" | tr -d '\n')
-  
-  # Check if GPU is available
-  if [[ "$gram_usage" == "No GPU" || "$total_gram" == "No GPU" || "$gram_percentage" == "No GPU" ]]; then
-    echo "No GPU"
-    return
-  fi
-  
-  # Use the shared load bar component with GRAM parameters and raw percentage
-  "$CURRENT_DIR"/load_bar.sh --type=gram --value="$gram_usage" --total="$total_gram" --percentage="$gram_percentage"
-}
+# Get GRAM percentage
+gram_percentage=$("$CURRENT_DIR"/gram_percentage.sh)
 
-main() {
-  print_load_bar "$1"
-}
-main "$@"
+# Get raw percentage for load bar calculations
+gram_percentage_raw=$("$CURRENT_DIR"/gram_percentage.sh raw)
+
+# Strip any newlines
+gram_percentage=$(echo -n "$gram_percentage" | tr -d '\n')
+gram_percentage_raw=$(echo -n "$gram_percentage_raw" | tr -d '\n')
+total_gram=$(echo -n "$total_gram" | tr -d '\n')
+
+# Check if we have a GPU or got a valid GRAM percentage
+if [[ "$gram_percentage" == "No GPU" || -z "$gram_percentage" ]]; then
+  echo "[No GPU]"
+  exit 0
+fi
+
+# Get GRAM usage
+gram_usage=$("$CURRENT_DIR"/gram_usage.sh)
+gram_usage=$(echo -n "$gram_usage" | tr -d '\n')
+
+# Use the shared load bar component
+"$CURRENT_DIR"/load_bar.sh "gram" "$gram_percentage_raw" "$total_gram/$gram_usage"

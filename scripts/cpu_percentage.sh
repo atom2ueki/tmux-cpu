@@ -8,15 +8,19 @@ source "$CURRENT_DIR/helpers.sh"
 cpu_percentage_format="%3.1f%%"
 
 get_cpu_usage() {
-  if is_linux; then
-    # Linux: Parse CPU idle percentage from top and convert to used percentage
-    top -bn1 | grep "%Cpu" | awk '{print 100 - $8}'
-  elif is_osx; then
-    # macOS: Parse CPU idle percentage from top and convert to used percentage
-    top -l 1 | grep -E "^CPU usage" | sed -E 's/.*([0-9]+\.[0-9]+)% idle.*/\1/' | awk '{print 100 - $1}'
+  if command_exists "iostat"; then
+    if is_linux_iostat; then
+      cached_eval iostat -c 1 2 | sed '/^\s*$/d' | tail -n 1 | awk '{usage=100-$NF} END {print usage}' | sed 's/,/./'
+    else
+      echo "0"
+    fi
+  elif command_exists "sar"; then
+    cached_eval sar -u 1 1 | sed '/^\s*$/d' | tail -n 1 | awk '{usage=100-$NF} END {print usage}' | sed 's/,/./'
   else
-    # Fallback for other systems
-    echo "0"
+    # Fallback method using ps
+    load=$(cached_eval ps aux | awk '{print $3}' | tail -n+2 | awk '{s+=$1} END {print s}')
+    cpus=$(cpus_number)
+    echo "$load $cpus" | awk '{print $1/$2}'
   fi
 }
 

@@ -8,43 +8,25 @@ source "$CURRENT_DIR/helpers.sh"
 gram_percentage_format="%3.1f%%"
 
 get_gram_percentage() {
-  if ! command_exists "nvidia-smi" && ! command_exists "cuda-smi"; then
+  if command_exists "nvidia-smi"; then
+    used_total=$(cached_eval nvidia-smi | sed -nr 's/.*\s([0-9]+)MiB\s*\/\s*([0-9]+)MiB.*/\1 \2/p')
+  elif command_exists "cuda-smi"; then
+    used_total=$(cached_eval cuda-smi | sed -nr 's/.*\s([0-9.]+) of ([0-9.]+) MB.*/\1 \2/p')
+  else
     echo "No GPU"
     return
   fi
   
-  # Get direct values from memory query
-  local gram_data
-  
-  if command_exists "nvidia-smi"; then
-    # Get used and total memory directly
-    gram_data=$(nvidia-smi --query-gpu=memory.used,memory.total --format=csv,noheader,nounits | head -n1)
-  else
-    # Try cuda-smi as fallback
-    cuda_output=$(cuda-smi | grep -E "^Global")
-    if [[ -n "$cuda_output" ]]; then
-      used=$(echo "$cuda_output" | grep -Eo "[0-9.]+ of [0-9.]+ MB" | sed -E 's/([0-9.]+) of ([0-9.]+) MB/\1/')
-      total=$(echo "$cuda_output" | grep -Eo "[0-9.]+ of [0-9.]+ MB" | sed -E 's/([0-9.]+) of ([0-9.]+) MB/\2/')
-      gram_data="$used $total"
-    else
-      echo "No GPU"
-      return
-    fi
+  # Check if we got valid data
+  if [ -z "$used_total" ]; then
+    echo "0"
+    return
   fi
-  
-  # Extract values and calculate percentage
-  local used_gram
-  local total_gram
-  
-  used_gram=$(echo "$gram_data" | awk '{print $1}')
-  total_gram=$(echo "$gram_data" | awk '{print $2}')
   
   # Calculate percentage
-  if [[ -n "$used_gram" && -n "$total_gram" && "$total_gram" != "0" ]]; then
-    echo "scale=1; 100 * $used_gram / $total_gram" | bc
-  else
-    echo "0"
-  fi
+  used=$(echo "$used_total" | awk '{sum += $1} END {print sum}')
+  total=$(echo "$used_total" | awk '{sum += $2} END {print sum}')
+  echo "$used $total" | awk '{printf "%.1f", 100 * $1 / $2}'
 }
 
 print_gram_percentage() {
@@ -56,7 +38,7 @@ print_gram_percentage() {
   
   # Check if GPU is available
   if [[ "$percentage" == "No GPU" ]]; then
-    echo -n "No GPU"
+    echo "No GPU"
     return
   fi
   

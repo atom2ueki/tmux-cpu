@@ -7,48 +7,31 @@ source "$CURRENT_DIR/helpers.sh"
 
 gpu_percentage_format="%3.1f%%"
 
-get_gpu_usage() {
-  if command_exists "nvidia-smi"; then
-    # Direct query for GPU utilization - more reliable than parsing text output
-    nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits | awk '{sum+=$1} END {printf "%.1f", sum/NR}'
-  elif command_exists "cuda-smi"; then
-    # Fallback for older CUDA systems
-    cuda-smi | grep -Eo "[0-9]+%" | head -n1 | tr -d '%'
-  else
-    echo "No GPU"
-    return 1
-  fi
-}
-
 print_gpu_percentage() {
   gpu_percentage_format=$(get_tmux_option "@gpu_percentage_format" "$gpu_percentage_format")
 
-  local gpu_usage
-  gpu_usage=$(get_gpu_usage)
-  
-  # Check for errors
-  if [[ $? -ne 0 || "$gpu_usage" == "No GPU" ]]; then
+  if command_exists "nvidia-smi"; then
+    loads=$(cached_eval nvidia-smi)
+  elif command_exists "cuda-smi"; then
+    loads=$(cached_eval cuda-smi)
+  else
     echo "No GPU"
     return
   fi
-  
-  # Format and print
-  printf "$gpu_percentage_format" "$gpu_usage"
-  
-  # Ensure output ends with a newline
-  echo ""
+  echo "$loads" | sed -nr 's/.*\s([0-9]+)%.*/\1/p' | awk -v format="$gpu_percentage_format" '{sum+=$1; n+=1} END {printf format, sum/n}'
 }
 
 # Make this value available for the load bar script
 print_raw_gpu_percentage() {
-  get_gpu_usage
-  # Check for errors
-  if [[ $? -ne 0 ]]; then
+  if command_exists "nvidia-smi"; then
+    loads=$(cached_eval nvidia-smi)
+  elif command_exists "cuda-smi"; then
+    loads=$(cached_eval cuda-smi)
+  else
     echo "0"
+    return
   fi
-  
-  # Ensure output ends with a newline
-  echo ""
+  echo "$loads" | sed -nr 's/.*\s([0-9]+)%.*/\1/p' | awk '{sum+=$1; n+=1} END {printf "%5.3f", sum/n}'
 }
 
 main() {
