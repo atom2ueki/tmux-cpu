@@ -6,7 +6,7 @@ CURRENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$CURRENT_DIR/helpers.sh"
 
 gram_usage_format="%3.1f"
-gram_unit="GB"
+gram_unit="G"
 
 get_gram_data() {
   if command_exists "nvidia-smi"; then
@@ -35,7 +35,7 @@ print_gram_usage() {
   used_gram=$(echo "$gram_data" | awk '{sum += $1} END {print sum}')
   
   # Convert from MiB or MB to the requested unit
-  if [ "$gram_unit" = "GB" ]; then
+  if [ "$gram_unit" = "G" ]; then
     used_gram=$(echo "$used_gram" | awk '{printf "%f", $1 / 1024}')
   fi
   
@@ -55,7 +55,7 @@ print_total_gram() {
   total_gram=$(echo "$gram_data" | awk '{sum += $2} END {print sum}')
   
   # Convert from MiB or MB to the requested unit
-  if [ "$gram_unit" = "GB" ]; then
+  if [ "$gram_unit" = "G" ]; then
     total_gram=$(echo "$total_gram" | awk '{printf "%f", $1 / 1024}')
   fi
   

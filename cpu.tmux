@@ -157,6 +157,19 @@ apply_one_dark_theme() {
   
   tmux set-option -gq "@gpu_temp_high_color" "#[fg=$onedark_red,bg=default]"
   tmux set-environment -g "@gpu_temp_high_color" "#[fg=$onedark_red,bg=default]"
+  
+  # Set default tmux-cpu theme colors
+  tmux set-option -gq "@cpu_bracket_color" "#[fg=$onedark_white,bg=default]"
+  tmux set-environment -g "@cpu_bracket_color" "#[fg=$onedark_white,bg=default]"
+  
+  tmux set-option -gq "@gpu_bracket_color" "#[fg=$onedark_white,bg=default]"
+  tmux set-environment -g "@gpu_bracket_color" "#[fg=$onedark_white,bg=default]"
+  
+  tmux set-option -gq "@ram_bracket_color" "#[fg=$onedark_white,bg=default]"
+  tmux set-environment -g "@ram_bracket_color" "#[fg=$onedark_white,bg=default]"
+  
+  tmux set-option -gq "@gram_bracket_color" "#[fg=$onedark_white,bg=default]"
+  tmux set-environment -g "@gram_bracket_color" "#[fg=$onedark_white,bg=default]"
 }
 
 cpu_interpolation=(

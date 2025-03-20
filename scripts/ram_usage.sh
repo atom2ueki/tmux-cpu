@@ -6,7 +6,7 @@ CURRENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$CURRENT_DIR/helpers.sh"
 
 ram_usage_format="%3.1f"
-ram_unit="GB"
+ram_unit="G"
 
 sum_macos_vm_stats() {
   grep -Eo '[0-9]+' |
@@ -64,7 +64,7 @@ print_ram_usage() {
   used_ram=$(get_used_ram)
   total_ram=$(get_total_ram)
   
-  if [ "$ram_unit" = "GB" ]; then
+  if [ "$ram_unit" = "G" ]; then
     divisor=1073741824  # 1024^3
   else
     divisor=1048576     # 1024^2
@@ -80,7 +80,7 @@ print_total_ram() {
   
   total_ram=$(get_total_ram)
   
-  if [ "$ram_unit" = "GB" ]; then
+  if [ "$ram_unit" = "G" ]; then
     divisor=1073741824  # 1024^3
   else
     divisor=1048576     # 1024^2

@@ -9,6 +9,7 @@ source "$CURRENT_DIR/helpers.sh"
 low_color=""
 medium_color=""
 high_color=""
+bracket_color=""
 
 # Progress bar settings
 progress_bar_length=10
@@ -22,6 +23,7 @@ get_settings() {
   low_color=$(get_tmux_option "@ram_low_color" "")
   medium_color=$(get_tmux_option "@ram_medium_color" "")
   high_color=$(get_tmux_option "@ram_high_color" "")
+  bracket_color=$(get_tmux_option "@ram_bracket_color" "")
   
   # Get progress bar settings
   progress_bar_length=$(get_tmux_option "@ram_progress_length" "$progress_bar_length")
@@ -34,6 +36,22 @@ get_settings() {
 print_load_bar() {
   local ram_percentage
   ram_percentage=$("$CURRENT_DIR"/ram_percentage.sh | sed -e 's/%//' | cut -d '.' -f 1)
+  
+  # Get RAM usage values
+  local ram_usage
+  local total_ram
+  ram_usage=$("$CURRENT_DIR"/ram_usage.sh)
+  total_ram=$("$CURRENT_DIR"/ram_usage.sh total)
+  
+  # Modify units from GB/MB to G/M if needed
+  ram_unit=$(get_tmux_option "@ram_unit" "GB")
+  if [ "$ram_unit" = "GB" ]; then
+    ram_usage=${ram_usage/GB/G}
+    total_ram=${total_ram/GB/G}
+  elif [ "$ram_unit" = "MB" ]; then
+    ram_usage=${ram_usage/MB/M}
+    total_ram=${total_ram/MB/M}
+  fi
   
   # Determine color based on percentage thresholds
   local load_bar_color=""
@@ -56,12 +74,12 @@ print_load_bar() {
   
   local empty_count=$((progress_bar_length - filled_count))
   
-  # Build progress bar
-  local progress_bar="$left_bracket"
+  # Build progress bar with colored brackets
+  local progress_bar="${bracket_color}${left_bracket}"
   
-  # Add filled section
+  # Add filled section with load color
   for ((i=0; i<filled_count; i++)); do
-    progress_bar="${progress_bar}${progress_char}"
+    progress_bar="${progress_bar}${load_bar_color}${progress_char}"
   done
   
   # Add empty section
@@ -69,10 +87,11 @@ print_load_bar() {
     progress_bar="${progress_bar}${empty_char}"
   done
   
-  progress_bar="${progress_bar}${right_bracket}"
+  # Add RAM usage info in format X/Y inside bracket
+  progress_bar="${progress_bar} ${ram_usage}/${total_ram}${bracket_color}${right_bracket}"
   
-  # Output the colored progress bar
-  echo "${load_bar_color}${progress_bar}#[fg=default]"
+  # Output the progress bar
+  echo "${progress_bar}#[fg=default]"
 }
 
 main() {

@@ -9,6 +9,7 @@ source "$CURRENT_DIR/helpers.sh"
 low_color=""
 medium_color=""
 high_color=""
+bracket_color=""
 
 # Progress bar settings
 progress_bar_length=10
@@ -22,6 +23,7 @@ get_settings() {
   low_color=$(get_tmux_option "@gram_low_color" "")
   medium_color=$(get_tmux_option "@gram_medium_color" "")
   high_color=$(get_tmux_option "@gram_high_color" "")
+  bracket_color=$(get_tmux_option "@gram_bracket_color" "")
   
   # Get progress bar settings
   progress_bar_length=$(get_tmux_option "@gram_progress_length" "$progress_bar_length")
@@ -34,6 +36,26 @@ get_settings() {
 print_load_bar() {
   local gram_percentage
   gram_percentage=$("$CURRENT_DIR"/gram_percentage.sh | sed -e 's/%//' | cut -d '.' -f 1)
+  
+  # Get used and total VRAM
+  local gram_usage=$("$CURRENT_DIR"/gram_usage.sh)
+  local total_gram=$("$CURRENT_DIR"/gram_usage.sh total)
+  
+  # Check if GPU is available
+  if [[ "$gram_usage" == "No GPU" || "$total_gram" == "No GPU" ]]; then
+    echo "No GPU"
+    return
+  fi
+  
+  # Modify units from GB/MB to G/M
+  local gram_unit=$(get_tmux_option "@gram_unit" "GB")
+  if [[ "$gram_unit" == "GB" ]]; then
+    gram_usage=${gram_usage/GB/G}
+    total_gram=${total_gram/GB/G}
+  elif [[ "$gram_unit" == "MB" ]]; then
+    gram_usage=${gram_usage/MB/M}
+    total_gram=${total_gram/MB/M}
+  fi
   
   # Determine color based on percentage thresholds
   local load_bar_color=""
@@ -56,12 +78,12 @@ print_load_bar() {
   
   local empty_count=$((progress_bar_length - filled_count))
   
-  # Build progress bar
-  local progress_bar="$left_bracket"
+  # Build progress bar with colored brackets
+  local progress_bar="${bracket_color}${left_bracket}"
   
-  # Add filled section
+  # Add filled section with load color
   for ((i=0; i<filled_count; i++)); do
-    progress_bar="${progress_bar}${progress_char}"
+    progress_bar="${progress_bar}${load_bar_color}${progress_char}"
   done
   
   # Add empty section
@@ -69,10 +91,11 @@ print_load_bar() {
     progress_bar="${progress_bar}${empty_char}"
   done
   
-  progress_bar="${progress_bar}${right_bracket}"
+  # Add memory usage at the end inside bracket
+  progress_bar="${progress_bar} ${gram_usage}/${total_gram}${bracket_color}${right_bracket}"
   
-  # Output the colored progress bar
-  echo "${load_bar_color}${progress_bar}#[fg=default]"
+  # Output the progress bar
+  echo "${progress_bar}#[fg=default]"
 }
 
 main() {

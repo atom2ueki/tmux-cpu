@@ -9,6 +9,24 @@ Configurable percentage and load bar display with One Dark Pro theme styling.
 - Shows CPU, RAM, GPU and VRAM usage with load bars
 - Temperature monitoring for CPU and GPU
 - Fully customizable colors, thresholds, and formatting
+- CPU usage percentage
+- CPU temperature
+- CPU load bar visualizing usage
+- RAM usage percentage
+- RAM load bar visualizing usage
+- GPU usage percentage (requires nvidia-smi or cuda-smi)
+- GPU temperature (requires nvidia-smi)
+- GPU load bar visualizing usage
+- VRAM (Graphics RAM) usage (requires nvidia-smi or cuda-smi)
+- VRAM load bar visualizing usage
+
+## Enhanced Load Bar Format
+
+The load bars now display information inside the brackets:
+- CPU and GPU load bars: `[||| 6.2%]` - Shows percentage inside brackets
+- RAM and VRAM load bars: `[||| 10G/22G]` - Shows usage/total inside brackets
+
+The numbers are colored based on the defined thresholds, and the brackets can be customized with a different color.
 
 ## Installation
 ### Installation with [Tmux Plugin Manager](https://github.com/tmux-plugins/tpm) (recommended)
