@@ -9,9 +9,11 @@ print_load_bar() {
   # Get VRAM usage values
   local gram_usage
   local total_gram
+  local gram_percentage
   
   gram_usage=$("$CURRENT_DIR"/gram_usage.sh)
   total_gram=$("$CURRENT_DIR"/gram_usage.sh total)
+  gram_percentage=$("$CURRENT_DIR"/gram_percentage.sh raw)
   
   # Check if GPU is available
   if [[ "$gram_usage" == "No GPU" || "$total_gram" == "No GPU" ]]; then
@@ -29,8 +31,8 @@ print_load_bar() {
     total_gram=${total_gram/MB/M}
   fi
   
-  # Use the shared load bar component with GRAM parameters
-  "$CURRENT_DIR"/load_bar.sh --type=gram --value="$gram_usage" --total="$total_gram"
+  # Use the shared load bar component with GRAM parameters and raw percentage
+  "$CURRENT_DIR"/load_bar.sh --type=gram --value="$gram_usage" --total="$total_gram" --percentage="$gram_percentage"
 }
 
 main() {

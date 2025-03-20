@@ -9,9 +9,11 @@ print_load_bar() {
   # Get RAM usage and total
   local ram_usage
   local total_ram
+  local ram_percentage
   
   ram_usage=$("$CURRENT_DIR"/ram_usage.sh)
   total_ram=$("$CURRENT_DIR"/ram_usage.sh total)
+  ram_percentage=$("$CURRENT_DIR"/ram_percentage.sh raw)
   
   # Check for any error conditions
   if [[ -z "$ram_usage" || -z "$total_ram" ]]; then
@@ -29,8 +31,8 @@ print_load_bar() {
     total_ram=${total_ram/MB/M}
   fi
   
-  # Use the shared load bar component with RAM parameters
-  "$CURRENT_DIR"/load_bar.sh --type=ram --value="$ram_usage" --total="$total_ram"
+  # Use the shared load bar component with RAM parameters and raw percentage
+  "$CURRENT_DIR"/load_bar.sh --type=ram --value="$ram_usage" --total="$total_ram" --percentage="$ram_percentage"
 }
 
 main() {

@@ -16,8 +16,11 @@ print_load_bar() {
     return
   fi
   
-  # Use the shared load bar component with GPU parameters
-  "$CURRENT_DIR"/load_bar.sh --type=gpu --value="$gpu_percentage"
+  # Extract raw percentage value (without % sign)
+  local gpu_raw=$(echo "$gpu_percentage" | sed -e 's/%//' | sed -e 's/,/./')
+  
+  # Use the shared load bar component with GPU parameters and raw percentage
+  "$CURRENT_DIR"/load_bar.sh --type=gpu --value="$gpu_percentage" --percentage="$gpu_raw"
 }
 
 main() {

@@ -8,7 +8,10 @@ source "$CURRENT_DIR/helpers.sh"
 print_load_bar() {
   # Get CPU percentage
   local cpu_percentage
+  local cpu_raw
+  
   cpu_percentage=$("$CURRENT_DIR"/cpu_percentage.sh)
+  cpu_raw=$("$CURRENT_DIR"/cpu_percentage.sh raw)
   
   # Check if cpu_percentage is empty or "No CPU"
   if [[ -z "$cpu_percentage" || "$cpu_percentage" == "No CPU" ]]; then
@@ -16,8 +19,8 @@ print_load_bar() {
     return
   fi
   
-  # Use the shared load bar component with CPU parameters
-  "$CURRENT_DIR"/load_bar.sh --type=cpu --value="$cpu_percentage"
+  # Use the shared load bar component with CPU parameters and raw percentage value
+  "$CURRENT_DIR"/load_bar.sh --type=cpu --value="$cpu_percentage" --percentage="$cpu_raw"
 }
 
 main() {

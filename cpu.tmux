@@ -35,8 +35,8 @@ apply_one_dark_theme() {
   tmux set-option -gq "message-style" "bg=$onedark_comment_grey,fg=$onedark_white"
   
   # CPU/GPU load bar appearance
-  tmux set-option -gq "@cpu_progress_char" "■"
-  tmux set-environment -g "@cpu_progress_char" "■"
+  tmux set-option -gq "@cpu_progress_char" "|"
+  tmux set-environment -g "@cpu_progress_char" "|"
   
   tmux set-option -gq "@cpu_empty_char" " "
   tmux set-environment -g "@cpu_empty_char" " "
@@ -51,8 +51,8 @@ apply_one_dark_theme() {
   tmux set-environment -g "@cpu_right_bracket" "]"
   
   # Same for GPU
-  tmux set-option -gq "@gpu_progress_char" "■"
-  tmux set-environment -g "@gpu_progress_char" "■"
+  tmux set-option -gq "@gpu_progress_char" "|"
+  tmux set-environment -g "@gpu_progress_char" "|"
   
   tmux set-option -gq "@gpu_empty_char" " "
   tmux set-environment -g "@gpu_empty_char" " "
@@ -67,8 +67,8 @@ apply_one_dark_theme() {
   tmux set-environment -g "@gpu_right_bracket" "]"
   
   # And RAM
-  tmux set-option -gq "@ram_progress_char" "■"
-  tmux set-environment -g "@ram_progress_char" "■"
+  tmux set-option -gq "@ram_progress_char" "|"
+  tmux set-environment -g "@ram_progress_char" "|"
   
   tmux set-option -gq "@ram_empty_char" " "
   tmux set-environment -g "@ram_empty_char" " "
@@ -83,8 +83,8 @@ apply_one_dark_theme() {
   tmux set-environment -g "@ram_right_bracket" "]"
   
   # And GRAM
-  tmux set-option -gq "@gram_progress_char" "■"
-  tmux set-environment -g "@gram_progress_char" "■"
+  tmux set-option -gq "@gram_progress_char" "|"
+  tmux set-environment -g "@gram_progress_char" "|"
   
   tmux set-option -gq "@gram_empty_char" " "
   tmux set-environment -g "@gram_empty_char" " "
@@ -238,8 +238,8 @@ setup_default_status_line() {
   if [ -z "$current_status_right" ] || [ "$current_status_right" == "#{?window_zoomed_flag,[Z],} %H:%M %d-%b-%y" ]; then
     # Create a nice One Dark Pro themed status line with transparent background
     tmux set-option -gq "status-right" "\
-#[fg=$onedark_white,bg=default]CPU #[fg=$onedark_cyan,bg=default]#{cpu_percentage} #[fg=$onedark_purple,bg=default]#{cpu_temp} #{cpu_load_bar} | \
-#[fg=$onedark_white,bg=default]RAM #[fg=$onedark_cyan,bg=default]#{ram_usage} #{ram_load_bar} | \
+#[fg=$onedark_white,bg=default]CPU: #{cpu_load_bar} #{cpu_percentage} #[fg=$onedark_purple,bg=default]#{cpu_temp} | \
+#[fg=$onedark_white,bg=default]RAM: #{ram_load_bar} #{ram_usage} | \
 #[fg=$onedark_white,bg=default]%a %h-%d %H:%M "
     
     # Set status line right length to accommodate our template

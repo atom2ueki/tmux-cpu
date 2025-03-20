@@ -7,13 +7,7 @@ source "$CURRENT_DIR/helpers.sh"
 
 gram_percentage_format="%3.1f%%"
 
-print_gram_percentage() {
-  gram_percentage_format=$(get_tmux_option "@gram_percentage_format" "$gram_percentage_format")
-  
-  # Get values from existing scripts
-  local used_gram
-  local total_gram
-  
+get_gram_percentage() {
   # Get raw output first to check if GPU exists
   local used_output
   local total_output
@@ -28,18 +22,47 @@ print_gram_percentage() {
   fi
   
   # Extract numeric values from gram_usage output
+  local used_gram
+  local total_gram
+  
   used_gram=$(echo "$used_output" | sed -e 's/[^0-9.]//g')
   total_gram=$(echo "$total_output" | sed -e 's/[^0-9.]//g')
   
-  # Calculate percentage
+  # Calculate percentage using bc for better precision
   if [[ -n "$used_gram" && -n "$total_gram" && "$total_gram" != "0" ]]; then
-    echo "$used_gram $total_gram" | awk -v format="$gram_percentage_format" '{printf(format, 100*$1/$2)}'
+    echo "scale=1; 100 * $used_gram / $total_gram" | bc
   else
-    printf "$gram_percentage_format" 0
+    echo "0"
   fi
 }
 
+print_gram_percentage() {
+  gram_percentage_format=$(get_tmux_option "@gram_percentage_format" "$gram_percentage_format")
+  
+  # Get the percentage
+  local percentage
+  percentage=$(get_gram_percentage)
+  
+  # Check if GPU is available
+  if [[ "$percentage" == "No GPU" ]]; then
+    echo "No GPU"
+    return
+  fi
+  
+  # Format the percentage
+  printf "$gram_percentage_format" "$percentage"
+}
+
+# Print raw percentage value for the load bar component
+print_raw_gram_percentage() {
+  get_gram_percentage
+}
+
 main() {
-  print_gram_percentage
+  if [ "$1" = "raw" ]; then
+    print_raw_gram_percentage
+  else
+    print_gram_percentage
+  fi
 }
 main "$@"

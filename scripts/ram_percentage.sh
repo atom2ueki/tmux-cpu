@@ -7,26 +7,43 @@ source "$CURRENT_DIR/helpers.sh"
 
 ram_percentage_format="%3.1f%%"
 
-print_ram_percentage() {
-  ram_percentage_format=$(get_tmux_option "@ram_percentage_format" "$ram_percentage_format")
-  
-  # Get values from existing scripts
+get_ram_percentage() {
+  # Extract numeric values from ram_usage output
   local used_ram
   local total_ram
   
-  # Extract numeric values from ram_usage output
   used_ram=$("$CURRENT_DIR"/ram_usage.sh | sed -e 's/[^0-9.]//g')
   total_ram=$("$CURRENT_DIR"/ram_usage.sh total | sed -e 's/[^0-9.]//g')
   
   # Calculate percentage
   if [[ -n "$used_ram" && -n "$total_ram" && "$total_ram" != "0" ]]; then
-    echo "$used_ram $total_ram" | awk -v format="$ram_percentage_format" '{printf(format, 100*$1/$2)}'
+    echo "scale=1; 100 * $used_ram / $total_ram" | bc
   else
-    printf "$ram_percentage_format" 0
+    echo "0"
   fi
 }
 
-main() {
-  print_ram_percentage
+print_ram_percentage() {
+  ram_percentage_format=$(get_tmux_option "@ram_percentage_format" "$ram_percentage_format")
+  
+  # Get raw percentage
+  local percentage
+  percentage=$(get_ram_percentage)
+  
+  # Format the percentage
+  printf "$ram_percentage_format" "$percentage"
 }
-main
+
+# Print raw percentage value for the load bar component
+print_raw_ram_percentage() {
+  get_ram_percentage
+}
+
+main() {
+  if [ "$1" = "raw" ]; then
+    print_raw_ram_percentage
+  else
+    print_ram_percentage
+  fi
+}
+main "$@"

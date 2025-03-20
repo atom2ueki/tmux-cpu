@@ -25,7 +25,7 @@ empty_char=" "
 left_bracket="["
 right_bracket="]"
 
-# Default colors (One Dark Pro theme)
+# Default colors (these will be overridden by tmux settings)
 default_low_color="#[fg=green]"
 default_medium_color="#[fg=yellow]"
 default_high_color="#[fg=red]"
@@ -130,16 +130,17 @@ determine_color() {
 }
 
 build_progress_bar() {
-  # Calculate filled and empty segments
-  local filled_count=$(echo "scale=0; ($percentage * $progress_bar_length / 100) + 0.5" | bc | awk '{printf "%d", $1}')
+  # Calculate filled and empty segments based on percentage
+  local filled_count=$(echo "scale=0; ($percentage * $progress_bar_length / 100) + 0.5" | bc)
+  filled_count=${filled_count:-0}  # Default to 0 if empty
   
-  # Ensure filled_count is at least 0
-  if [[ -z "$filled_count" || "$filled_count" -lt 0 ]]; then
+  # Force to integer with awk
+  filled_count=$(echo "$filled_count" | awk '{printf "%d", $1}')
+  
+  # Ensure filled_count is within bounds
+  if [[ "$filled_count" -lt 0 ]]; then
     filled_count=0
-  fi
-  
-  # Ensure filled_count doesn't exceed progress_bar_length
-  if [[ "$filled_count" -gt "$progress_bar_length" ]]; then
+  elif [[ "$filled_count" -gt "$progress_bar_length" ]]; then
     filled_count=$progress_bar_length
   fi
   
@@ -148,13 +149,15 @@ build_progress_bar() {
   # Start with colored brackets
   local progress_bar="${bracket_color}${left_bracket}"
   
-  # Debug (remove in production)
-  # echo "Percentage: $percentage, Length: $progress_bar_length, Filled: $filled_count, Empty: $empty_count" >&2
-  
   # Add filled section with appropriate color
-  for ((i=0; i<filled_count; i++)); do
-    progress_bar="${progress_bar}${load_bar_color}${progress_char}"
-  done
+  if [[ "$filled_count" -gt 0 ]]; then
+    progress_bar="${progress_bar}${load_bar_color}"
+    for ((i=0; i<filled_count; i++)); do
+      progress_bar="${progress_bar}${progress_char}"
+    done
+    # Reset color back to default after filled section
+    progress_bar="${progress_bar}#[fg=default]"
+  fi
   
   # Add empty section
   for ((i=0; i<empty_count; i++)); do
@@ -163,12 +166,12 @@ build_progress_bar() {
   
   # Add the value display (with or without total)
   if [[ -n "$total" ]]; then
-    progress_bar="${progress_bar}${value}/${total}${bracket_color}${right_bracket}"
+    progress_bar="${progress_bar} ${value}/${total}${bracket_color}${right_bracket}"
   else
-    progress_bar="${progress_bar}${value}${bracket_color}${right_bracket}"
+    progress_bar="${progress_bar} ${value}${bracket_color}${right_bracket}"
   fi
   
-  # Output the completed bar
+  # Final reset to default color
   echo "${progress_bar}#[fg=default]"
 }
 

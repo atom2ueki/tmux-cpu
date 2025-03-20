@@ -3,8 +3,9 @@
 export LANG=C
 export LC_ALL=C
 
-# Cached values to avoid repeated identical commands
-declare -A _cached_values
+# Simple cache mechanism using files instead of associative arrays
+# Cached values to avoid repeated identical commands 
+# declare -A _cached_values  # Removed as it's incompatible with older bash
 
 # Gets tmux option
 # Usage: get_tmux_option <option_name> <default_value>
@@ -150,21 +151,21 @@ put_cache_val() {
   echo -n "$val"
 }
 
-# Cached evaluation of a command
+# Cached evaluation of a command - uses file-based caching
 # Usage: cached_eval <command> [cache_key]
 cached_eval() {
   local command="$1"
   local cache_key="${2:-$command}"
+  local result
   
-  # Check if result is already cached
-  if [[ -n "${_cached_values[$cache_key]}" ]]; then
-    echo "${_cached_values[$cache_key]}"
-    return
+  # Try to get cached value
+  result=$(get_cache_val "$cache_key")
+  
+  # If not cached, evaluate and cache
+  if [ -z "$result" ]; then
+    result=$(eval "$command")
+    put_cache_val "$cache_key" "$result"
   fi
   
-  # Evaluate the command and cache the result
-  local result
-  result=$(eval "$command")
-  _cached_values[$cache_key]="$result"
   echo "$result"
 }
