@@ -6,32 +6,56 @@ CURRENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$CURRENT_DIR/helpers.sh"
 
 # script global variables
-ram_low_icon=""
-ram_medium_icon=""
-ram_high_icon=""
+tier1_icon=""
+tier2_icon=""
+tier3_icon=""
+tier4_icon=""
+tier5_icon=""
+tier6_icon=""
+tier7_icon=""
+tier8_icon=""
 
-ram_low_default_icon="="
-ram_medium_default_icon="≡"
-ram_high_default_icon="≣"
+tier1_default_icon="▁"
+tier2_default_icon="▂"
+tier3_default_icon="▃"
+tier4_default_icon="▄"
+tier5_default_icon="▅"
+tier6_default_icon="▆"
+tier7_default_icon="▇"
+tier8_default_icon="█"
 
 # icons are set as script global variables
 get_icon_settings() {
-  ram_low_icon=$(get_tmux_option "@ram_low_icon" "$ram_low_default_icon")
-  ram_medium_icon=$(get_tmux_option "@ram_medium_icon" "$ram_medium_default_icon")
-  ram_high_icon=$(get_tmux_option "@ram_high_icon" "$ram_high_default_icon")
+  tier1_icon=$(get_tmux_option "@tier1_icon" "$tier1_default_icon")
+  tier2_icon=$(get_tmux_option "@tier2_icon" "$tier2_default_icon")
+  tier3_icon=$(get_tmux_option "@tier3_icon" "$tier3_default_icon")
+  tier4_icon=$(get_tmux_option "@tier4_icon" "$tier4_default_icon")
+  tier5_icon=$(get_tmux_option "@tier5_icon" "$tier5_default_icon")
+  tier6_icon=$(get_tmux_option "@tier6_icon" "$tier6_default_icon")
+  tier7_icon=$(get_tmux_option "@tier7_icon" "$tier7_default_icon")
+  tier8_icon=$(get_tmux_option "@tier8_icon" "$tier8_default_icon")
 }
 
 print_icon() {
   local ram_percentage
-  local ram_load_status
-  ram_percentage=$("$CURRENT_DIR"/ram_percentage.sh | sed -e 's/%//')
-  ram_load_status=$(load_status "$ram_percentage" "ram")
-  if [ "$ram_load_status" == "low" ]; then
-    echo "$ram_low_icon"
-  elif [ "$ram_load_status" == "medium" ]; then
-    echo "$ram_medium_icon"
-  elif [ "$ram_load_status" == "high" ]; then
-    echo "$ram_high_icon"
+  ram_percentage=$("$CURRENT_DIR"/ram_percentage.sh | sed -e 's/%//' | cut -d '.' -f 1)
+  
+  if [ "$ram_percentage" -ge 95 ]; then
+    echo "$tier8_icon"
+  elif [ "$ram_percentage" -ge 80 ]; then
+    echo "$tier7_icon"
+  elif [ "$ram_percentage" -ge 65 ]; then
+    echo "$tier6_icon"
+  elif [ "$ram_percentage" -ge 50 ]; then
+    echo "$tier5_icon"
+  elif [ "$ram_percentage" -ge 35 ]; then
+    echo "$tier4_icon"
+  elif [ "$ram_percentage" -ge 20 ]; then
+    echo "$tier3_icon"
+  elif [ "$ram_percentage" -ge 5 ]; then
+    echo "$tier2_icon"
+  else
+    echo "$tier1_icon"
   fi
 }
 
