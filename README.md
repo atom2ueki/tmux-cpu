@@ -1,7 +1,14 @@
 # Tmux CPU and GPU status
 
 Enables displaying CPU and GPU information in Tmux `status-right` and `status-left`.
-Configurable percentage and icon display.
+Configurable percentage and load bar display with One Dark Pro theme styling.
+
+## Features
+
+- Automatically applies an elegant One Dark Pro theme by default
+- Shows CPU, RAM, GPU and VRAM usage with load bars
+- Temperature monitoring for CPU and GPU
+- Fully customizable colors, thresholds, and formatting
 
 ## Installation
 ### Installation with [Tmux Plugin Manager](https://github.com/tmux-plugins/tpm) (recommended)
@@ -52,13 +59,16 @@ Please make sure the appropriate command is installed and in the `$PATH`.
 
 ## Usage
 
-Add any of the supported format strings (see below) to the existing `status-right` tmux option.
+The plugin automatically applies a stylish One Dark Pro theme to your tmux status bar. You can add any of the supported format strings (see below) to customize your `status-right` tmux option.
+
 Example:
 
 ```shell
 # in .tmux.conf
-set -g status-right '#{cpu_bg_color} CPU: #{cpu_icon} #{cpu_percentage} | %a %h-%d %H:%M '
+set -g status-right 'CPU: #{cpu_load_bar} #{cpu_percentage} | %a %h-%d %H:%M '
 ```
+
+If you don't customize the status line, a default One Dark Pro styled status line will be applied automatically.
 
 ### Supported Options
 
@@ -102,20 +112,21 @@ CPU usage higher than 80%:<br/>
 
 ## Customization
 
-Here are all available options with their default values:
+The plugin applies One Dark Pro theme by default with elegant styling for all metrics. If you want to customize any of the settings, here are all available options:
 
 ```shell
-# Progress bar settings (for cpu, gpu, ram, gram icons)
-@cpu_progress_length "10" # length of the progress bar
-@cpu_progress_char "|" # character for the filled portion of the bar
+# Progress bar settings (load bars use "■" character by default)
+@cpu_progress_length "8" # length of the progress bar
+@cpu_progress_char "■" # character for the filled portion of the bar
 @cpu_empty_char " " # character for the empty portion of the bar
 @cpu_left_bracket "[" # left bracket for the progress bar
 @cpu_right_bracket "]" # right bracket for the progress bar
 
-# Color settings
-@cpu_low_color "#[fg=green]" # color when usage is low
-@cpu_medium_color "#[fg=yellow]" # color when usage is medium
-@cpu_high_color "#[fg=red]" # color when usage is high
+# One Dark Pro theme colors are applied by default
+# You can override them with your own custom colors:
+@cpu_low_color "#[fg=green,bg=black]" # color when usage is low
+@cpu_medium_color "#[fg=yellow,bg=black]" # color when usage is medium
+@cpu_high_color "#[fg=red,bg=black]" # color when usage is high
 
 @cpu_percentage_format "%3.1f%%" # printf format to use to display percentage
 
@@ -154,6 +165,26 @@ set -g @cpu_temp_scale "F" # Use Fahrenheit temperature scale (will display as �
 ```
 
 Don't forget to reload the tmux environment (`$ tmux source-file ~/.tmux.conf`) after you do this.
+
+### Troubleshooting
+
+#### Green Background in Status Bar
+
+If your status bar has unwanted background colors when using the load bar or percentage indicators, add the following to your `.tmux.conf`:
+
+```shell
+# Fix background color issue
+set -g status-style bg=black  # Or any other color you prefer
+```
+
+This happens because some terminals might not correctly interpret the background color settings. You can also fix this by explicitly setting background colors in your `.tmux.conf`:
+
+```shell
+# Set explicit background for all CPU indicators
+set -g @cpu_low_color "#[fg=green,bg=black]"    
+set -g @cpu_medium_color "#[fg=yellow,bg=black]"
+set -g @cpu_high_color "#[fg=red,bg=black]"
+```
 
 ### Tmux Plugins
 

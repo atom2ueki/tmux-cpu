@@ -5,26 +5,29 @@ CURRENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=scripts/helpers.sh
 source "$CURRENT_DIR/helpers.sh"
 
+# global vars
+temp=""
 gpu_temp_format="%2.0f"
 gpu_temp_scale="C"
+gpu_temp_medium_threshold="80"
+gpu_temp_high_threshold="90"
 
-# Color settings
+# colors
 low_color=""
 medium_color=""
 high_color=""
-
-low_default_color="#[fg=green]"
-medium_default_color="#[fg=yellow]"
-high_default_color="#[fg=red]"
+low_default_color="#[fg=green,bg=default]"
+medium_default_color="#[fg=yellow,bg=default]"
+high_default_color="#[fg=red,bg=default]"
 
 print_gpu_temp() {
   gpu_temp_format=$(get_tmux_option "@gpu_temp_format" "$gpu_temp_format")
   gpu_temp_scale=$(get_tmux_option "@gpu_temp_scale" "$gpu_temp_scale")
   
   # Get color settings
-  low_color=$(get_tmux_option "@gpu_temp_low_color" "$low_default_color")
-  medium_color=$(get_tmux_option "@gpu_temp_medium_color" "$medium_default_color")
-  high_color=$(get_tmux_option "@gpu_temp_high_color" "$high_default_color")
+  low_color=$(get_tmux_option "@gpu_temp_low_color" "")
+  medium_color=$(get_tmux_option "@gpu_temp_medium_color" "")
+  high_color=$(get_tmux_option "@gpu_temp_high_color" "")
   
   # Set the unit with degree symbol based on scale
   gpu_temp_unit="°$gpu_temp_scale"

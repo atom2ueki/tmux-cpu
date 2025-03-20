@@ -10,10 +10,6 @@ low_color=""
 medium_color=""
 high_color=""
 
-low_default_color="#[fg=green]"
-medium_default_color="#[fg=yellow]"
-high_default_color="#[fg=red]"
-
 # Progress bar settings
 progress_bar_length=10
 progress_char="|"
@@ -23,9 +19,9 @@ right_bracket="]"
 
 get_settings() {
   # Get color settings
-  low_color=$(get_tmux_option "@cpu_low_color" "$low_default_color")
-  medium_color=$(get_tmux_option "@cpu_medium_color" "$medium_default_color")
-  high_color=$(get_tmux_option "@cpu_high_color" "$high_default_color")
+  low_color=$(get_tmux_option "@cpu_low_color" "")
+  medium_color=$(get_tmux_option "@cpu_medium_color" "")
+  high_color=$(get_tmux_option "@cpu_high_color" "")
   
   # Get progress bar settings
   progress_bar_length=$(get_tmux_option "@cpu_progress_length" "$progress_bar_length")

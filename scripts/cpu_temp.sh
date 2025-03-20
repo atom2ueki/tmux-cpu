@@ -5,26 +5,26 @@ CURRENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=scripts/helpers.sh
 source "$CURRENT_DIR/helpers.sh"
 
+# global vars
+temp=""
 cpu_temp_format="%2.0f"
 cpu_temp_scale="C"
+cpu_temp_medium_threshold="80"
+cpu_temp_high_threshold="90"
 
-# Color settings
+# colors
 low_color=""
 medium_color=""
 high_color=""
-
-low_default_color="#[fg=green]"
-medium_default_color="#[fg=yellow]"
-high_default_color="#[fg=red]"
 
 print_cpu_temp() {
   cpu_temp_format=$(get_tmux_option "@cpu_temp_format" "$cpu_temp_format")
   cpu_temp_scale=$(get_tmux_option "@cpu_temp_scale" "$cpu_temp_scale")
   
   # Get color settings
-  low_color=$(get_tmux_option "@cpu_temp_low_color" "$low_default_color")
-  medium_color=$(get_tmux_option "@cpu_temp_medium_color" "$medium_default_color")
-  high_color=$(get_tmux_option "@cpu_temp_high_color" "$high_default_color")
+  low_color=$(get_tmux_option "@cpu_temp_low_color" "")
+  medium_color=$(get_tmux_option "@cpu_temp_medium_color" "")
+  high_color=$(get_tmux_option "@cpu_temp_high_color" "")
   
   # Set the unit with degree symbol based on scale
   cpu_temp_unit="°$cpu_temp_scale"
