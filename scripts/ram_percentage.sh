@@ -8,27 +8,22 @@ source "$CURRENT_DIR/helpers.sh"
 ram_percentage_format="%3.1f%%"
 
 get_ram_percentage() {
-  # Extract numeric values from ram_usage output
-  local used_ram
-  local total_ram
+  # Get RAM data directly from ram_usage.sh
+  local used_output
+  local total_output
   
-  used_ram=$("$CURRENT_DIR"/ram_usage.sh | sed -e 's/[^0-9.]//g')
-  total_ram=$("$CURRENT_DIR"/ram_usage.sh total | sed -e 's/[^0-9.]//g')
+  # Strip any units from the output
+  used_output=$("$CURRENT_DIR"/ram_usage.sh | tr -d 'GM')
+  total_output=$("$CURRENT_DIR"/ram_usage.sh total | tr -d 'GM')
   
-  # Debug - make sure used is not greater than total
-  if (( $(echo "$used_ram > $total_ram" | bc -l) )); then
-    # If used > total, swap them as they're likely reversed
-    local temp=$used_ram
-    used_ram=$total_ram
-    total_ram=$temp
+  # Ensure values are valid
+  if [[ -z "$used_output" || -z "$total_output" || "$total_output" == "0" ]]; then
+    echo "0"
+    return
   fi
   
   # Calculate percentage
-  if [[ -n "$used_ram" && -n "$total_ram" && "$total_ram" != "0" ]]; then
-    echo "scale=1; 100 * $used_ram / $total_ram" | bc
-  else
-    echo "0"
-  fi
+  echo "scale=1; 100 * $used_output / $total_output" | bc
 }
 
 print_ram_percentage() {
@@ -38,6 +33,11 @@ print_ram_percentage() {
   local percentage
   percentage=$(get_ram_percentage)
   
+  # Ensure percentage is valid
+  if [[ -z "$percentage" ]]; then
+    percentage=0
+  fi
+  
   # Sanity check - ensure percentage is not over 100
   if (( $(echo "$percentage > 100" | bc -l) )); then
     percentage=100
@@ -45,11 +45,17 @@ print_ram_percentage() {
   
   # Format the percentage
   printf "$ram_percentage_format" "$percentage"
+  
+  # Ensure output ends with a newline
+  echo ""
 }
 
 # Print raw percentage value for the load bar component
 print_raw_ram_percentage() {
   get_ram_percentage
+  
+  # Ensure output ends with a newline
+  echo ""
 }
 
 main() {

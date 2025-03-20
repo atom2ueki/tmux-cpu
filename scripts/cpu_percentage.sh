@@ -8,26 +8,15 @@ source "$CURRENT_DIR/helpers.sh"
 cpu_percentage_format="%3.1f%%"
 
 get_cpu_usage() {
-  if command_exists "iostat"; then
-    if is_linux_iostat; then
-      cached_eval iostat -c 1 2 | sed '/^\s*$/d' | tail -n 1 | awk '{usage=100-$NF} END {print usage}' | sed 's/,/./'
-    elif is_osx; then
-      cached_eval iostat -c 2 disk0 | sed '/^\s*$/d' | tail -n 1 | awk '{usage=100-$6} END {print usage}' | sed 's/,/./'
-    elif is_freebsd || is_openbsd; then
-      cached_eval iostat -c 2 | sed '/^\s*$/d' | tail -n 1 | awk '{usage=100-$NF} END {print usage}' | sed 's/,/./'
-    else
-      echo "0"
-    fi
-  elif command_exists "sar"; then
-    cached_eval sar -u 1 1 | sed '/^\s*$/d' | tail -n 1 | awk '{usage=100-$NF} END {print usage}' | sed 's/,/./'
+  if is_linux; then
+    # Linux: Parse CPU idle percentage from top and convert to used percentage
+    top -bn1 | grep "%Cpu" | awk '{print 100 - $8}'
+  elif is_osx; then
+    # macOS: Parse CPU idle percentage from top and convert to used percentage
+    top -l 1 | grep -E "^CPU usage" | sed -E 's/.*([0-9]+\.[0-9]+)% idle.*/\1/' | awk '{print 100 - $1}'
   else
-    if is_cygwin; then
-      cached_eval WMIC cpu get LoadPercentage | grep -Eo '^[0-9]+'
-    else
-      load=$(cached_eval ps aux | awk '{print $3}' | tail -n+2 | awk '{s+=$1} END {print s}')
-      cpus=$(cpus_number)
-      echo "$load $cpus" | awk '{print $1/$2}'
-    fi
+    # Fallback for other systems
+    echo "0"
   fi
 }
 
@@ -44,11 +33,17 @@ print_cpu_percentage() {
   else
     printf "$cpu_percentage_format" 0
   fi
+  
+  # Ensure output ends with a newline
+  echo ""
 }
 
 # Make this value available for the load bar script
 print_raw_cpu_percentage() {
   get_cpu_usage
+  
+  # Ensure output ends with a newline
+  echo ""
 }
 
 main() {

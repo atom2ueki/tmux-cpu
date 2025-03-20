@@ -8,56 +8,51 @@ source "$CURRENT_DIR/helpers.sh"
 ram_usage_format="%3.1f"
 ram_unit="G"
 
-sum_macos_vm_stats() {
-  grep -Eo '[0-9]+' |
-    awk '{ a += $1 * 4096 } END { print a }'
-}
-
-get_total_ram() {
-  if command_exists "free"; then
-    # For Linux systems using free command
-    cached_eval free -b | awk '$1 ~ /Mem/ {print $2}'
-  elif command_exists "vm_stat"; then
-    # For macOS
-    stats="$(cached_eval vm_stat)"
+get_ram_data() {
+  local used
+  local total
+  
+  if is_linux; then
+    # Linux: Get RAM info from the MiB Mem line in top
+    mem_line=$(top -bn1 | grep -E "^MiB Mem")
+    total=$(echo "$mem_line" | awk '{print $4}')
+    used=$(echo "$mem_line" | awk '{print $8}')
+    echo "$used $total"
+  elif is_osx; then
+    # macOS: Parse PhysMem line from top
+    # Format: "PhysMem: 31G used (3773M wired, 7999M compressor), 210M unused."
+    mem_line=$(top -l 1 | grep -E "^PhysMem:")
     
-    used_and_cached=$(
-      echo "$stats" |
-        grep -E "(Pages active|Pages inactive|Pages speculative|Pages wired down|Pages occupied by compressor)" |
-        sum_macos_vm_stats
-    )
-
-    free=$(
-      echo "$stats" |
-        grep -E "(Pages free)" |
-        sum_macos_vm_stats
-    )
-
-    echo $((used_and_cached + free))
-  fi
-}
-
-get_used_ram() {
-  if command_exists "free"; then
-    # For Linux systems using free command - use proper column (used memory)
-    cached_eval free -b | awk '$1 ~ /Mem/ {print $3}'
-  elif command_exists "vm_stat"; then
-    # For macOS
-    stats="$(cached_eval vm_stat)"
+    # Extract used memory (removing the 'G' or 'M' suffix)
+    used_str=$(echo "$mem_line" | sed -E 's/.*PhysMem: ([0-9]+[GM]) used.*/\1/')
+    used_num=$(echo "$used_str" | sed -E 's/([0-9]+).*/\1/')
+    used_unit=$(echo "$used_str" | sed -E 's/[0-9]+([GM]).*/\1/')
     
-    used_and_cached=$(
-      echo "$stats" |
-        grep -E "(Pages active|Pages inactive|Pages speculative|Pages wired down|Pages occupied by compressor)" |
-        sum_macos_vm_stats
-    )
-
-    cached=$(
-      echo "$stats" |
-        grep -E "(Pages purgeable|File-backed pages)" |
-        sum_macos_vm_stats
-    )
-
-    echo $((used_and_cached - cached))
+    # Extract unused memory (removing the 'G' or 'M' suffix)
+    unused_str=$(echo "$mem_line" | sed -E 's/.* ([0-9]+[GM]) unused.*/\1/')
+    unused_num=$(echo "$unused_str" | sed -E 's/([0-9]+).*/\1/')
+    unused_unit=$(echo "$unused_str" | sed -E 's/[0-9]+([GM]).*/\1/')
+    
+    # Convert to MB if needed
+    if [ "$used_unit" = "G" ]; then
+      used=$(echo "$used_num * 1024" | bc)
+    else
+      used=$used_num
+    fi
+    
+    if [ "$unused_unit" = "G" ]; then
+      unused=$(echo "$unused_num * 1024" | bc)
+    else
+      unused=$unused_num
+    fi
+    
+    # Calculate total
+    total=$(echo "$used + $unused" | bc)
+    
+    echo "$used $total"
+  else
+    # Fallback for other systems
+    echo "0 0"
   fi
 }
 
@@ -65,45 +60,47 @@ print_ram_usage() {
   ram_usage_format=$(get_tmux_option "@ram_usage_format" "$ram_usage_format")
   ram_unit=$(get_tmux_option "@ram_unit" "$ram_unit")
   
-  used_ram=$(get_used_ram)
+  # Get RAM data
+  ram_data=$(get_ram_data)
+  used=$(echo "$ram_data" | awk '{print $1}')
   
+  # Convert to the requested unit
   if [ "$ram_unit" = "G" ]; then
-    divisor=1073741824  # 1024^3
+    # Convert from MB to GB 
+    used_in_unit=$(echo "scale=1; $used / 1024" | bc)
   else
-    divisor=1048576     # 1024^2
-  fi
-  
-  # Ensure we have a valid number for used RAM
-  if [ -z "$used_ram" ] || [ "$used_ram" -eq 0 ]; then
-    used_ram_in_unit=0
-  else
-    used_ram_in_unit=$(echo "scale=1; $used_ram / $divisor" | bc)
+    # Already in MB
+    used_in_unit=$used
   fi
   
   # Format with proper precision
-  printf "$ram_usage_format$ram_unit" "$used_ram_in_unit"
+  printf "$ram_usage_format$ram_unit" "$used_in_unit"
+  
+  # Ensure output ends with a newline
+  echo ""
 }
 
 print_total_ram() {
   ram_unit=$(get_tmux_option "@ram_unit" "$ram_unit")
   
-  total_ram=$(get_total_ram)
+  # Get RAM data
+  ram_data=$(get_ram_data)
+  total=$(echo "$ram_data" | awk '{print $2}')
   
+  # Convert to the requested unit
   if [ "$ram_unit" = "G" ]; then
-    divisor=1073741824  # 1024^3
+    # Convert from MB to GB
+    total_in_unit=$(echo "scale=1; $total / 1024" | bc)
   else
-    divisor=1048576     # 1024^2
-  fi
-  
-  # Ensure we have a valid number for total RAM
-  if [ -z "$total_ram" ] || [ "$total_ram" -eq 0 ]; then
-    total_ram_in_unit=0
-  else
-    total_ram_in_unit=$(echo "scale=1; $total_ram / $divisor" | bc)
+    # Already in MB
+    total_in_unit=$total
   fi
   
   # Format with proper precision
-  printf "%.1f$ram_unit" "$total_ram_in_unit"
+  printf "%.1f$ram_unit" "$total_in_unit"
+  
+  # Ensure output ends with a newline
+  echo ""
 }
 
 main() {
@@ -112,7 +109,5 @@ main() {
   else
     print_ram_usage
   fi
-  # Add a newline to properly terminate output
-  echo ""
 }
 main "$@" 

@@ -9,14 +9,15 @@ gpu_percentage_format="%3.1f%%"
 
 get_gpu_usage() {
   if command_exists "nvidia-smi"; then
-    loads=$(cached_eval nvidia-smi)
+    # Direct query for GPU utilization - more reliable than parsing text output
+    nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits | awk '{sum+=$1} END {printf "%.1f", sum/NR}'
   elif command_exists "cuda-smi"; then
-    loads=$(cached_eval cuda-smi)
+    # Fallback for older CUDA systems
+    cuda-smi | grep -Eo "[0-9]+%" | head -n1 | tr -d '%'
   else
     echo "No GPU"
     return 1
   fi
-  echo "$loads" | sed -nr 's/.*\s([0-9]+)%.*/\1/p' | awk '{sum+=$1; n+=1} END {printf "%5.3f", sum/n}'
 }
 
 print_gpu_percentage() {
@@ -27,12 +28,15 @@ print_gpu_percentage() {
   
   # Check for errors
   if [[ $? -ne 0 || "$gpu_usage" == "No GPU" ]]; then
-    echo -n "No GPU"
+    echo "No GPU"
     return
   fi
   
   # Format and print
   printf "$gpu_percentage_format" "$gpu_usage"
+  
+  # Ensure output ends with a newline
+  echo ""
 }
 
 # Make this value available for the load bar script
@@ -42,6 +46,9 @@ print_raw_gpu_percentage() {
   if [[ $? -ne 0 ]]; then
     echo "0"
   fi
+  
+  # Ensure output ends with a newline
+  echo ""
 }
 
 main() {

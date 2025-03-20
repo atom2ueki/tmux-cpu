@@ -26,16 +26,6 @@ print_load_bar() {
     return
   fi
   
-  # Modify units if needed (GB to G, MB to M)
-  local gram_unit=$(get_tmux_option "@gram_unit" "G")
-  if [[ "$gram_unit" == "GB" ]]; then
-    gram_usage=${gram_usage/GB/G}
-    total_gram=${total_gram/GB/G}
-  elif [[ "$gram_unit" == "MB" ]]; then
-    gram_usage=${gram_usage/MB/M}
-    total_gram=${total_gram/MB/M}
-  fi
-  
   # Use the shared load bar component with GRAM parameters and raw percentage
   "$CURRENT_DIR"/load_bar.sh --type=gram --value="$gram_usage" --total="$total_gram" --percentage="$gram_percentage"
 }
