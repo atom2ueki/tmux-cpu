@@ -75,6 +75,39 @@ For OSX, `cuda-smi` is required instead (but only shows GPU memory use rather th
 If "No GPU" is displayed, it means the script was not able to find `nvidia-smi`/`cuda-smi`.
 Please make sure the appropriate command is installed and in the `$PATH`.
 
+## For Developers
+
+The project now uses a reusable load bar component that can be used consistently across all resource types.
+
+### Using the Load Bar Component
+
+The load bar component (`scripts/load_bar.sh`) provides a consistent way to display resource usage with a progress bar. It can be used as follows:
+
+```bash
+# For percentage-based resources (CPU, GPU)
+./load_bar.sh --type=cpu --value="5.3%"
+
+# For memory-based resources (RAM, GRAM)
+./load_bar.sh --type=ram --value="8.2G" --total="16.0G"
+
+# With custom thresholds
+./load_bar.sh --type=cpu --value="5.3%" --threshold-med=30 --threshold-high=80
+
+# With direct percentage value
+./load_bar.sh --type=cpu --value="5.3%" --percentage=5.3
+```
+
+The component automatically reads tmux settings for colors and formatting based on the specified type.
+
+### Parameters
+
+- `--type`: Resource type (cpu, ram, gpu, gram)
+- `--value`: The value to display (with unit if applicable)
+- `--total`: Total value (for memory resources)
+- `--percentage`: Direct percentage value (optional)
+- `--threshold-med`: Medium load threshold (default: 30)
+- `--threshold-high`: High load threshold (default: 80)
+
 ## Usage
 
 The plugin automatically applies a stylish One Dark Pro theme to your tmux status bar. You can add any of the supported format strings (see below) to customize your `status-right` tmux option.
