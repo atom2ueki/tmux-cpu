@@ -33,6 +33,11 @@ print_ram_usage() {
   # Get used RAM in bytes
   used_ram=$(get_used_ram)
   
+  # Make sure we have a valid number
+  if ! [[ "$used_ram" =~ ^[0-9]+$ ]]; then
+    used_ram=0
+  fi
+  
   # Convert to the requested unit
   if [ "$ram_unit" = "G" ]; then
     divisor=1073741824  # 1024^3 for GB
@@ -40,8 +45,12 @@ print_ram_usage() {
     divisor=1048576     # 1024^2 for MB
   fi
   
-  # Convert bytes to the requested unit
-  used_ram_in_unit=$(echo "scale=1; $used_ram / $divisor" | bc)
+  # Convert bytes to the requested unit (if used_ram is 0, skip calculation)
+  if [ "$used_ram" -eq 0 ]; then
+    used_ram_in_unit=0
+  else
+    used_ram_in_unit=$(echo "scale=1; $used_ram / $divisor" | bc)
+  fi
   
   # Format with proper precision
   printf "$ram_usage_format$ram_unit" "$used_ram_in_unit"
@@ -53,6 +62,11 @@ print_total_ram() {
   # Get total RAM in bytes
   total_ram=$(get_total_ram)
   
+  # Make sure we have a valid number
+  if ! [[ "$total_ram" =~ ^[0-9]+$ ]]; then
+    total_ram=0
+  fi
+  
   # Convert to the requested unit
   if [ "$ram_unit" = "G" ]; then
     divisor=1073741824  # 1024^3 for GB
@@ -60,8 +74,12 @@ print_total_ram() {
     divisor=1048576     # 1024^2 for MB
   fi
   
-  # Convert bytes to the requested unit
-  total_ram_in_unit=$(echo "scale=1; $total_ram / $divisor" | bc)
+  # Convert bytes to the requested unit (if total_ram is 0, skip calculation)
+  if [ "$total_ram" -eq 0 ]; then
+    total_ram_in_unit=0
+  else
+    total_ram_in_unit=$(echo "scale=1; $total_ram / $divisor" | bc)
+  fi
   
   # Format with proper precision
   printf "%.1f$ram_unit" "$total_ram_in_unit"

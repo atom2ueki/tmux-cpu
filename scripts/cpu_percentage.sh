@@ -8,47 +8,71 @@ source "$CURRENT_DIR/helpers.sh"
 cpu_percentage_format="%3.1f%%"
 
 get_cpu_usage() {
-  local cpu_usage=0
+  # Try using mpstat if available (most accurate)
+  if command_exists "mpstat"; then
+    # mpstat with 1 second delay, get the idle percentage from the last line
+    idle=$(mpstat 1 1 | tail -n 1 | awk '{print $NF}')
+    # Convert to usage percentage
+    if [[ "$idle" =~ ^[0-9]+(\.)?[0-9]*$ ]]; then
+      echo "scale=1; 100 - $idle" | bc
+      return
+    fi
+  fi
   
-  # Try method 1: top command (more universal)
+  # Try using /proc/stat directly (Linux-specific but reliable)
+  if [ -f "/proc/stat" ]; then
+    # Get two samples of CPU stats with 1 second interval
+    local cpu1 cpu2 idle1 idle2 total1 total2
+    cpu1=$(grep '^cpu ' /proc/stat)
+    sleep 1
+    cpu2=$(grep '^cpu ' /proc/stat)
+    
+    # Extract the idle time values
+    idle1=$(echo "$cpu1" | awk '{print $5}')
+    idle2=$(echo "$cpu2" | awk '{print $5}')
+    
+    # Calculate the total CPU times
+    total1=$(echo "$cpu1" | awk '{sum=0; for(i=2; i<=NF; i++) sum+=$i; print sum}')
+    total2=$(echo "$cpu2" | awk '{sum=0; for(i=2; i<=NF; i++) sum+=$i; print sum}')
+    
+    # Calculate the CPU usage percentage
+    if [[ "$idle1" =~ ^[0-9]+$ ]] && [[ "$idle2" =~ ^[0-9]+$ ]] && \
+       [[ "$total1" =~ ^[0-9]+$ ]] && [[ "$total2" =~ ^[0-9]+$ ]]; then
+      idle_diff=$((idle2 - idle1))
+      total_diff=$((total2 - total1))
+      
+      if [ "$total_diff" -gt 0 ]; then
+        echo "scale=1; 100 * (1 - $idle_diff / $total_diff)" | bc
+        return
+      fi
+    fi
+  fi
+  
+  # Try top as a fallback
   if command_exists "top"; then
     if is_linux; then
-      # Extract CPU usage from top on Linux (100 - idle%)
-      cpu_usage=$(top -bn1 | grep "%Cpu" | awk '{print 100 - $8}')
-    elif is_osx; then
-      # Extract CPU usage from top on macOS
-      cpu_usage=$(top -l 1 | grep -E "^CPU" | awk '{print $3}' | tr -d '%')
+      # Extract CPU idle time from top
+      idle=$(top -bn1 | grep "%Cpu" | awk '{print $8}')
+      if [[ "$idle" =~ ^[0-9]+(\.)?[0-9]*$ ]]; then
+        echo "scale=1; 100 - $idle" | bc
+        return
+      fi
     fi
   fi
   
-  # If top didn't work or returned 0, try iostat
-  if [[ -z "$cpu_usage" || "$cpu_usage" = "0" ]] && command_exists "iostat"; then
-    if is_linux_iostat; then
-      cpu_usage=$(cached_eval iostat -c 1 2 | sed '/^\s*$/d' | tail -n 1 | awk '{usage=100-$NF} END {print usage}' | sed 's/,/./')
-    fi
-  fi
-  
-  # If iostat didn't work or returned 0, try sar
-  if [[ -z "$cpu_usage" || "$cpu_usage" = "0" ]] && command_exists "sar"; then
-    cpu_usage=$(cached_eval sar -u 1 1 | sed '/^\s*$/d' | tail -n 1 | awk '{usage=100-$NF} END {print usage}' | sed 's/,/./')
-  fi
-  
-  # If all else failed, use ps as last resort
-  if [[ -z "$cpu_usage" || "$cpu_usage" = "0" ]]; then
-    # Fallback method using ps
-    load=$(cached_eval ps aux | awk '{print $3}' | tail -n+2 | awk '{s+=$1} END {print s}')
+  # Last resort: try ps to estimate CPU usage
+  if command_exists "ps"; then
+    load=$(ps -eo pcpu | tail -n+2 | awk '{sum+=$1} END {print sum}')
     cpus=$(cpus_number)
-    if [[ -n "$load" && -n "$cpus" && "$cpus" != "0" ]]; then
-      cpu_usage=$(echo "$load $cpus" | awk '{print $1/$2}')
+    
+    if [[ "$load" =~ ^[0-9]+(\.)?[0-9]*$ ]] && [ "$cpus" -gt 0 ]; then
+      echo "scale=1; if($load > 100 * $cpus) then 100 else $load / $cpus fi" | bc
+      return
     fi
   fi
   
-  # Final sanity check
-  if [[ -z "$cpu_usage" ]]; then
-    echo "0"
-  else
-    echo "$cpu_usage"
-  fi
+  # If all methods failed
+  echo "0"
 }
 
 print_cpu_percentage() {
@@ -58,23 +82,18 @@ print_cpu_percentage() {
   local cpu_usage
   cpu_usage=$(get_cpu_usage)
   
-  # Format the percentage
-  if [[ -n "$cpu_usage" && "$cpu_usage" != "0" ]]; then
-    printf "$cpu_percentage_format" "$cpu_usage"
-  else
-    printf "$cpu_percentage_format" 0
+  # Make sure we have a valid number
+  if ! [[ "$cpu_usage" =~ ^[0-9]+(\.)?[0-9]*$ ]]; then
+    cpu_usage=0
   fi
   
-  # Ensure output ends with a newline
-  echo ""
+  # Format the percentage
+  printf "$cpu_percentage_format" "$cpu_usage"
 }
 
 # Make this value available for the load bar script
 print_raw_cpu_percentage() {
   get_cpu_usage
-  
-  # Ensure output ends with a newline
-  echo ""
 }
 
 main() {
