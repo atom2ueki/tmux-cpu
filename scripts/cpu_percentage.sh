@@ -7,36 +7,55 @@ source "$CURRENT_DIR/helpers.sh"
 
 cpu_percentage_format="%3.1f%%"
 
-print_cpu_percentage() {
-  cpu_percentage_format=$(get_tmux_option "@cpu_percentage_format" "$cpu_percentage_format")
-
+get_cpu_usage() {
   if command_exists "iostat"; then
-
     if is_linux_iostat; then
-      cached_eval iostat -c 1 2 | sed '/^\s*$/d' | tail -n 1 | awk -v format="$cpu_percentage_format" '{usage=100-$NF} END {printf(format, usage)}' | sed 's/,/./'
+      cached_eval iostat -c 1 2 | sed '/^\s*$/d' | tail -n 1 | awk '{usage=100-$NF} END {print usage}' | sed 's/,/./'
     elif is_osx; then
-      cached_eval iostat -c 2 disk0 | sed '/^\s*$/d' | tail -n 1 | awk -v format="$cpu_percentage_format" '{usage=100-$6} END {printf(format, usage)}' | sed 's/,/./'
+      cached_eval iostat -c 2 disk0 | sed '/^\s*$/d' | tail -n 1 | awk '{usage=100-$6} END {print usage}' | sed 's/,/./'
     elif is_freebsd || is_openbsd; then
-      cached_eval iostat -c 2 | sed '/^\s*$/d' | tail -n 1 | awk -v format="$cpu_percentage_format" '{usage=100-$NF} END {printf(format, usage)}' | sed 's/,/./'
+      cached_eval iostat -c 2 | sed '/^\s*$/d' | tail -n 1 | awk '{usage=100-$NF} END {print usage}' | sed 's/,/./'
     else
-      echo "Unknown iostat version please create an issue"
+      echo "0"
     fi
   elif command_exists "sar"; then
-    cached_eval sar -u 1 1 | sed '/^\s*$/d' | tail -n 1 | awk -v format="$cpu_percentage_format" '{usage=100-$NF} END {printf(format, usage)}' | sed 's/,/./'
+    cached_eval sar -u 1 1 | sed '/^\s*$/d' | tail -n 1 | awk '{usage=100-$NF} END {print usage}' | sed 's/,/./'
   else
     if is_cygwin; then
-      usage="$(cached_eval WMIC cpu get LoadPercentage | grep -Eo '^[0-9]+')"
-      # shellcheck disable=SC2059
-      printf "$cpu_percentage_format" "$usage"
+      cached_eval WMIC cpu get LoadPercentage | grep -Eo '^[0-9]+'
     else
       load=$(cached_eval ps aux | awk '{print $3}' | tail -n+2 | awk '{s+=$1} END {print s}')
       cpus=$(cpus_number)
-      echo "$load $cpus" | awk -v format="$cpu_percentage_format" '{printf format, $1/$2}'
+      echo "$load $cpus" | awk '{print $1/$2}'
     fi
   fi
 }
 
-main() {
-  print_cpu_percentage
+print_cpu_percentage() {
+  cpu_percentage_format=$(get_tmux_option "@cpu_percentage_format" "$cpu_percentage_format")
+  
+  # Get the raw CPU usage value
+  local cpu_usage
+  cpu_usage=$(get_cpu_usage)
+  
+  # Format the percentage
+  if [[ -n "$cpu_usage" && "$cpu_usage" != "0" ]]; then
+    printf "$cpu_percentage_format" "$cpu_usage"
+  else
+    printf "$cpu_percentage_format" 0
+  fi
 }
-main
+
+# Make this value available for the load bar script
+print_raw_cpu_percentage() {
+  get_cpu_usage
+}
+
+main() {
+  if [ "$1" = "raw" ]; then
+    print_raw_cpu_percentage
+  else
+    print_cpu_percentage
+  fi
+}
+main "$@"

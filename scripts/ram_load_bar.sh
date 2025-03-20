@@ -35,13 +35,20 @@ get_settings() {
 
 print_load_bar() {
   local ram_percentage
-  ram_percentage=$("$CURRENT_DIR"/ram_percentage.sh | sed -e 's/%//' | cut -d '.' -f 1)
+  local ram_percentage_num
   
-  # Get RAM usage values
-  local ram_usage
-  local total_ram
-  ram_usage=$("$CURRENT_DIR"/ram_usage.sh)
-  total_ram=$("$CURRENT_DIR"/ram_usage.sh total)
+  # Get raw percentage value for calculation (without % sign)
+  ram_percentage=$("$CURRENT_DIR"/ram_percentage.sh)
+  ram_percentage_num=$(echo "$ram_percentage" | sed -e 's/%//' | sed -e 's/,/./')
+  
+  # Ensure the percentage is a valid number
+  if ! [[ "$ram_percentage_num" =~ ^[0-9]+(\.)?[0-9]*$ ]]; then
+    ram_percentage_num=0
+  fi
+  
+  # Get used and total RAM
+  local ram_usage=$("$CURRENT_DIR"/ram_usage.sh)
+  local total_ram=$("$CURRENT_DIR"/ram_usage.sh total)
   
   # Modify units from GB/MB to G/M if needed
   ram_unit=$(get_tmux_option "@ram_unit" "GB")
@@ -58,21 +65,21 @@ print_load_bar() {
   local medium_thresh=$(get_tmux_option "@ram_medium_thresh" "30")
   local high_thresh=$(get_tmux_option "@ram_high_thresh" "80")
   
-  if [ "$ram_percentage" -ge "$high_thresh" ]; then
+  if (( $(echo "$ram_percentage_num >= $high_thresh" | bc -l) )); then
     load_bar_color="$high_color"
-  elif [ "$ram_percentage" -ge "$medium_thresh" ]; then
+  elif (( $(echo "$ram_percentage_num >= $medium_thresh" | bc -l) )); then
     load_bar_color="$medium_color"
   else
     load_bar_color="$low_color"
   fi
   
   # Calculate progress bar
-  local filled_count=$((ram_percentage * progress_bar_length / 100))
-  if [ "$filled_count" -gt "$progress_bar_length" ]; then
+  local filled_count=$(echo "$ram_percentage_num * $progress_bar_length / 100" | bc)
+  if (( $(echo "$filled_count > $progress_bar_length" | bc -l) )); then
     filled_count=$progress_bar_length
   fi
   
-  local empty_count=$((progress_bar_length - filled_count))
+  local empty_count=$(echo "$progress_bar_length - $filled_count" | bc)
   
   # Build progress bar with colored brackets
   local progress_bar="${bracket_color}${left_bracket}"

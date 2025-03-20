@@ -35,32 +35,41 @@ get_settings() {
 
 print_load_bar() {
   local cpu_percentage
+  local cpu_percentage_num
+  
+  # Get formatted percentage for display
   cpu_percentage=$("$CURRENT_DIR"/cpu_percentage.sh)
-  local cpu_percentage_num=$(echo "$cpu_percentage" | sed -e 's/%//' | cut -d '.' -f 1)
+  
+  # Get raw percentage for calculations
+  cpu_percentage_num=$("$CURRENT_DIR"/cpu_percentage.sh raw | sed -e 's/%//' | sed -e 's/,/./')
+  
+  # Ensure the percentage is a valid number
+  if ! [[ "$cpu_percentage_num" =~ ^[0-9]+(\.)?[0-9]*$ ]]; then
+    cpu_percentage_num=0
+  fi
   
   # Determine color based on percentage thresholds
   local load_bar_color=""
   local medium_thresh=$(get_tmux_option "@cpu_medium_thresh" "30")
   local high_thresh=$(get_tmux_option "@cpu_high_thresh" "80")
   
-  if [ "$cpu_percentage_num" -ge "$high_thresh" ]; then
+  if (( $(echo "$cpu_percentage_num >= $high_thresh" | bc -l) )); then
     load_bar_color="$high_color"
-  elif [ "$cpu_percentage_num" -ge "$medium_thresh" ]; then
+  elif (( $(echo "$cpu_percentage_num >= $medium_thresh" | bc -l) )); then
     load_bar_color="$medium_color"
   else
     load_bar_color="$low_color"
   fi
   
   # Calculate progress bar
-  local filled_count=$((cpu_percentage_num * progress_bar_length / 100))
-  if [ "$filled_count" -gt "$progress_bar_length" ]; then
+  local filled_count=$(echo "$cpu_percentage_num * $progress_bar_length / 100" | bc)
+  if (( $(echo "$filled_count > $progress_bar_length" | bc -l) )); then
     filled_count=$progress_bar_length
   fi
   
-  local empty_count=$((progress_bar_length - filled_count))
+  local empty_count=$(echo "$progress_bar_length - $filled_count" | bc)
   
-  # Build progress bar
-  # Start with colored bracket
+  # Build progress bar with colored brackets
   local progress_bar="${bracket_color}${left_bracket}"
   
   # Add filled section with load color

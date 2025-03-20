@@ -35,29 +35,41 @@ get_settings() {
 
 print_load_bar() {
   local gpu_percentage
+  local gpu_percentage_num
+  
+  # Get raw percentage value for calculation (without % sign)
   gpu_percentage=$("$CURRENT_DIR"/gpu_percentage.sh)
-  local gpu_percentage_num=$(echo "$gpu_percentage" | sed -e 's/%//' | cut -d '.' -f 1)
+  gpu_percentage_num=$(echo "$gpu_percentage" | sed -e 's/%//' | sed -e 's/,/./')
+  
+  # Ensure the percentage is a valid number
+  if ! [[ "$gpu_percentage_num" =~ ^[0-9]+(\.)?[0-9]*$ ]]; then
+    if [[ "$gpu_percentage" == "No GPU" ]]; then
+      echo "No GPU"
+      return
+    fi
+    gpu_percentage_num=0
+  fi
   
   # Determine color based on percentage thresholds
   local load_bar_color=""
   local medium_thresh=$(get_tmux_option "@gpu_medium_thresh" "30")
   local high_thresh=$(get_tmux_option "@gpu_high_thresh" "80")
   
-  if [ "$gpu_percentage_num" -ge "$high_thresh" ]; then
+  if (( $(echo "$gpu_percentage_num >= $high_thresh" | bc -l) )); then
     load_bar_color="$high_color"
-  elif [ "$gpu_percentage_num" -ge "$medium_thresh" ]; then
+  elif (( $(echo "$gpu_percentage_num >= $medium_thresh" | bc -l) )); then
     load_bar_color="$medium_color"
   else
     load_bar_color="$low_color"
   fi
   
   # Calculate progress bar
-  local filled_count=$((gpu_percentage_num * progress_bar_length / 100))
-  if [ "$filled_count" -gt "$progress_bar_length" ]; then
+  local filled_count=$(echo "$gpu_percentage_num * $progress_bar_length / 100" | bc)
+  if (( $(echo "$filled_count > $progress_bar_length" | bc -l) )); then
     filled_count=$progress_bar_length
   fi
   
-  local empty_count=$((progress_bar_length - filled_count))
+  local empty_count=$(echo "$progress_bar_length - $filled_count" | bc)
   
   # Build progress bar with colored brackets
   local progress_bar="${bracket_color}${left_bracket}"
