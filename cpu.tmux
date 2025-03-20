@@ -29,6 +29,10 @@ cpu_interpolation=(
   "\#{gpu_temp_icon}"
   "\#{gpu_temp_bg_color}"
   "\#{gpu_temp_fg_color}"
+  "\#{ram_usage}"
+  "\#{total_ram}"
+  "\#{gram_usage}"
+  "\#{total_gram}"
 )
 cpu_commands=(
   "#($CURRENT_DIR/scripts/cpu_percentage.sh)"
@@ -55,6 +59,10 @@ cpu_commands=(
   "#($CURRENT_DIR/scripts/gpu_temp_icon.sh)"
   "#($CURRENT_DIR/scripts/gpu_temp_bg_color.sh)"
   "#($CURRENT_DIR/scripts/gpu_temp_fg_color.sh)"
+  "#($CURRENT_DIR/scripts/ram_usage.sh)"
+  "#($CURRENT_DIR/scripts/ram_usage.sh total)"
+  "#($CURRENT_DIR/scripts/gram_usage.sh)"
+  "#($CURRENT_DIR/scripts/gram_usage.sh total)"
 )
 
 set_tmux_option() {

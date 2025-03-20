@@ -73,6 +73,8 @@ This is done by introducing 12 new format strings that can be added to
 - `#{ram_percentage}` - will show RAM percentage (averaged across cores)
 - `#{ram_bg_color}` - will change the background color based on the RAM percentage
 - `#{ram_fg_color}` - will change the foreground color based on the RAM percentage
+- `#{ram_usage}` - will show RAM usage in GB or MB
+- `#{total_ram}` - will show total RAM available in GB or MB
 - `#{cpu_temp_icon}` - will display a CPU temperature status icon
 - `#{cpu_temp}` - will show CPU temperature (averaged across cores)
 - `#{cpu_temp_bg_color}` - will change the background color based on the CPU temperature
@@ -88,6 +90,8 @@ GPU equivalents also exist:
 - `#{gram_percentage}` - will show GPU RAM percentage (total across devices)
 - `#{gram_bg_color}` - will change the background color based on the GPU RAM percentage
 - `#{gram_fg_color}` - will change the foreground color based on the GPU RAM percentage
+- `#{gram_usage}` - will show GPU RAM usage in GB or MB
+- `#{total_gram}` - will show total GPU RAM available in GB or MB
 - `#{gpu_temp_icon}` - will display a GPU temperature status icon
 - `#{gpu_temp}` - will show GPU temperature (average across devices)
 - `#{gpu_temp_bg_color}` - will change the background color based on the GPU temperature
@@ -141,6 +145,12 @@ Here are all available options with their default values:
 @cpu_temp_high_thresh "90" # high temperature threshold
 
 @cpu_temp_(low_icon,high_bg_color,etc...) # same defaults as above
+
+@ram_usage_format "%3.1f" # printf format for RAM usage display (without unit)
+@ram_unit "GB" # unit for RAM display, either "GB" or "MB"
+
+@gram_usage_format "%3.1f" # printf format for GPU RAM usage display (without unit)
+@gram_unit "GB" # unit for GPU RAM display, either "GB" or "MB"
 ```
 
 All `@cpu_*` options are valid with `@gpu_*` (except `@cpu_*_thresh` which apply to both CPU and GPU). Additionally, `@ram_*` options become `@gram_*` for GPU equivalents.
