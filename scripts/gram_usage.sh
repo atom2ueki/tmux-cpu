@@ -10,8 +10,9 @@ gram_unit="G"
 
 get_gram_data() {
   if command_exists "nvidia-smi"; then
-    # Returns "used total" in MiB
-    cached_eval nvidia-smi | sed -nr 's/.*\s([0-9]+)MiB\s*\/\s*([0-9]+)MiB.*/\1 \2/p'
+    # Returns "used total" in MiB - more flexible regex to match different formats
+    # Now handles formats like "19530MiB /  22528MiB" with varying spaces
+    cached_eval nvidia-smi | sed -nr 's/.*\|\s+([0-9]+)MiB\s*\/\s*([0-9]+)MiB.*/\1 \2/p'
   elif command_exists "cuda-smi"; then
     # Returns "used total" in MB
     cached_eval cuda-smi | sed -nr 's/.*\s([0-9.]+) of ([0-9.]+) MB.*/\1 \2/p'

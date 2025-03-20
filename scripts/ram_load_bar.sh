@@ -26,6 +26,16 @@ print_load_bar() {
     return
   fi
   
+  # Debug - make sure used is not greater than total
+  ram_usage_num=$(echo "$ram_usage" | sed -e 's/[^0-9.]//g')
+  total_ram_num=$(echo "$total_ram" | sed -e 's/[^0-9.]//g')
+  if (( $(echo "$ram_usage_num > $total_ram_num" | bc -l) )); then
+    # If usage > total, swap them as they're likely reversed
+    local temp=$ram_usage
+    ram_usage=$total_ram
+    total_ram=$temp
+  fi
+  
   # Modify units if needed (GB to G, MB to M)
   ram_unit=$(get_tmux_option "@ram_unit" "G")
   if [ "$ram_unit" = "GB" ]; then

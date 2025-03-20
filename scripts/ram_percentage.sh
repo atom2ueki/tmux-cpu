@@ -15,6 +15,14 @@ get_ram_percentage() {
   used_ram=$("$CURRENT_DIR"/ram_usage.sh | sed -e 's/[^0-9.]//g')
   total_ram=$("$CURRENT_DIR"/ram_usage.sh total | sed -e 's/[^0-9.]//g')
   
+  # Debug - make sure used is not greater than total
+  if (( $(echo "$used_ram > $total_ram" | bc -l) )); then
+    # If used > total, swap them as they're likely reversed
+    local temp=$used_ram
+    used_ram=$total_ram
+    total_ram=$temp
+  fi
+  
   # Calculate percentage
   if [[ -n "$used_ram" && -n "$total_ram" && "$total_ram" != "0" ]]; then
     echo "scale=1; 100 * $used_ram / $total_ram" | bc
@@ -30,17 +38,18 @@ print_ram_percentage() {
   local percentage
   percentage=$(get_ram_percentage)
   
+  # Sanity check - ensure percentage is not over 100
+  if (( $(echo "$percentage > 100" | bc -l) )); then
+    percentage=100
+  fi
+  
   # Format the percentage
   printf "$ram_percentage_format" "$percentage"
-  # Ensure there's a newline at the end
-  echo ""
 }
 
 # Print raw percentage value for the load bar component
 print_raw_ram_percentage() {
   get_ram_percentage
-  # Ensure there's a newline at the end
-  echo ""
 }
 
 main() {

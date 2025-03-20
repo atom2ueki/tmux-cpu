@@ -15,8 +15,13 @@ print_load_bar() {
   total_gram=$("$CURRENT_DIR"/gram_usage.sh total)
   gram_percentage=$("$CURRENT_DIR"/gram_percentage.sh raw)
   
+  # Strip newlines from all values
+  gram_usage=$(echo -n "$gram_usage" | tr -d '\n')
+  total_gram=$(echo -n "$total_gram" | tr -d '\n')
+  gram_percentage=$(echo -n "$gram_percentage" | tr -d '\n')
+  
   # Check if GPU is available
-  if [[ "$gram_usage" == "No GPU" || "$total_gram" == "No GPU" ]]; then
+  if [[ "$gram_usage" == "No GPU" || "$total_gram" == "No GPU" || "$gram_percentage" == "No GPU" ]]; then
     echo "No GPU"
     return
   fi

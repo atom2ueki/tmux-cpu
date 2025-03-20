@@ -68,6 +68,15 @@ if [[ -z "$type" || -z "$value" ]]; then
   exit 1
 fi
 
+# Clean up input values - remove newlines and spaces
+value=$(echo -n "$value" | tr -d '\n')
+if [[ -n "$total" ]]; then
+  total=$(echo -n "$total" | tr -d '\n')
+fi
+if [[ -n "$percentage" ]]; then
+  percentage=$(echo -n "$percentage" | tr -d '\n' | tr -d ' ')
+fi
+
 get_settings() {
   # Get settings based on resource type
   progress_bar_length=$(get_tmux_option "@${type}_progress_length" "$progress_bar_length")
@@ -89,7 +98,7 @@ get_settings() {
 
 extract_percentage() {
   # If percentage is provided directly, use it
-  if [[ "$percentage" != "0" ]]; then
+  if [[ -n "$percentage" && "$percentage" != "0" ]]; then
     return
   fi
   
@@ -127,6 +136,11 @@ build_progress_bar() {
   # Calculate filled and empty segments based on percentage
   # Ensure non-zero percentages show at least one character
   local filled_count
+  
+  # Check if percentage is a valid number
+  if ! [[ "$percentage" =~ ^[0-9]+(\.)?[0-9]*$ ]]; then
+    percentage=0
+  fi
   
   if (( $(echo "$percentage > 0" | bc -l) )) && (( $(echo "$percentage < 100 / $progress_bar_length" | bc -l) )); then
     # For very small percentages (but not zero), always show at least one character
@@ -176,8 +190,7 @@ build_progress_bar() {
   # Add closing bracket and reset color
   progress_bar="${progress_bar}${bracket_color}${right_bracket}#[fg=default]"
   
-  # Make sure there's a newline at the end
-  echo "${progress_bar}"
+  echo -n "${progress_bar}"
 }
 
 main() {

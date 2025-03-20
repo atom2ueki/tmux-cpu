@@ -15,6 +15,10 @@ get_gram_percentage() {
   used_output=$("$CURRENT_DIR"/gram_usage.sh)
   total_output=$("$CURRENT_DIR"/gram_usage.sh total)
   
+  # Strip newlines
+  used_output=$(echo -n "$used_output" | tr -d '\n')
+  total_output=$(echo -n "$total_output" | tr -d '\n')
+  
   # Check if GPU is available
   if [[ "$used_output" == "No GPU" || "$total_output" == "No GPU" ]]; then
     echo "No GPU"
@@ -45,7 +49,7 @@ print_gram_percentage() {
   
   # Check if GPU is available
   if [[ "$percentage" == "No GPU" ]]; then
-    echo "No GPU"
+    echo -n "No GPU"
     return
   fi
   

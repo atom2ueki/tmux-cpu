@@ -15,8 +15,10 @@ sum_macos_vm_stats() {
 
 get_total_ram() {
   if command_exists "free"; then
-    cached_eval free | awk '$1 ~ /Mem/ {print $2 * 1024}'
+    # For Linux systems using free command
+    cached_eval free -b | awk '$1 ~ /Mem/ {print $2}'
   elif command_exists "vm_stat"; then
+    # For macOS
     stats="$(cached_eval vm_stat)"
     
     used_and_cached=$(
@@ -37,8 +39,10 @@ get_total_ram() {
 
 get_used_ram() {
   if command_exists "free"; then
-    cached_eval free | awk '$1 ~ /Mem/ {print $3 * 1024}'
+    # For Linux systems using free command - use proper column (used memory)
+    cached_eval free -b | awk '$1 ~ /Mem/ {print $3}'
   elif command_exists "vm_stat"; then
+    # For macOS
     stats="$(cached_eval vm_stat)"
     
     used_and_cached=$(

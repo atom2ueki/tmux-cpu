@@ -27,15 +27,12 @@ print_gpu_percentage() {
   
   # Check for errors
   if [[ $? -ne 0 || "$gpu_usage" == "No GPU" ]]; then
-    echo "No GPU"
-    echo ""
+    echo -n "No GPU"
     return
   fi
   
   # Format and print
   printf "$gpu_percentage_format" "$gpu_usage"
-  # Ensure there's a newline at the end
-  echo ""
 }
 
 # Make this value available for the load bar script
@@ -45,8 +42,6 @@ print_raw_gpu_percentage() {
   if [[ $? -ne 0 ]]; then
     echo "0"
   fi
-  # Ensure there's a newline at the end
-  echo ""
 }
 
 main() {
