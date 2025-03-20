@@ -176,6 +176,7 @@ build_progress_bar() {
   # Add closing bracket and reset color
   progress_bar="${progress_bar}${bracket_color}${right_bracket}#[fg=default]"
   
+  # Make sure there's a newline at the end
   echo "${progress_bar}"
 }
 

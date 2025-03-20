@@ -32,11 +32,15 @@ print_ram_percentage() {
   
   # Format the percentage
   printf "$ram_percentage_format" "$percentage"
+  # Ensure there's a newline at the end
+  echo ""
 }
 
 # Print raw percentage value for the load bar component
 print_raw_ram_percentage() {
   get_ram_percentage
+  # Ensure there's a newline at the end
+  echo ""
 }
 
 main() {

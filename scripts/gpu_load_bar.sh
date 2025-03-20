@@ -8,18 +8,22 @@ source "$CURRENT_DIR/helpers.sh"
 print_load_bar() {
   # Get GPU percentage
   local gpu_percentage
-  gpu_percentage=$("$CURRENT_DIR"/gpu_percentage.sh)
+  local gpu_raw
   
-  # Check if GPU is available
-  if [[ "$gpu_percentage" == "No GPU" ]]; then
+  gpu_percentage=$("$CURRENT_DIR"/gpu_percentage.sh)
+  gpu_raw=$("$CURRENT_DIR"/gpu_percentage.sh raw)
+  
+  # Strip newlines from both values
+  gpu_percentage=$(echo -n "$gpu_percentage" | tr -d '\n')
+  gpu_raw=$(echo -n "$gpu_raw" | tr -d '\n')
+  
+  # Check if gpu_percentage is empty or "No GPU"
+  if [[ -z "$gpu_percentage" || "$gpu_percentage" == "No GPU" ]]; then
     echo "No GPU"
     return
   fi
   
-  # Extract raw percentage value (without % sign)
-  local gpu_raw=$(echo "$gpu_percentage" | sed -e 's/%//' | sed -e 's/,/./')
-  
-  # Use the shared load bar component with GPU parameters and raw percentage
+  # Use the shared load bar component with GPU parameters and raw percentage value
   "$CURRENT_DIR"/load_bar.sh --type=gpu --value="$gpu_percentage" --percentage="$gpu_raw"
 }
 

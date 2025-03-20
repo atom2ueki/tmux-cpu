@@ -44,11 +44,15 @@ print_cpu_percentage() {
   else
     printf "$cpu_percentage_format" 0
   fi
+  # Ensure there's a newline at the end
+  echo ""
 }
 
 # Make this value available for the load bar script
 print_raw_cpu_percentage() {
   get_cpu_usage
+  # Ensure there's a newline at the end
+  echo ""
 }
 
 main() {

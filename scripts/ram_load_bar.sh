@@ -15,6 +15,11 @@ print_load_bar() {
   total_ram=$("$CURRENT_DIR"/ram_usage.sh total)
   ram_percentage=$("$CURRENT_DIR"/ram_percentage.sh raw)
   
+  # Strip newlines from all values
+  ram_usage=$(echo -n "$ram_usage" | tr -d '\n')
+  total_ram=$(echo -n "$total_ram" | tr -d '\n')
+  ram_percentage=$(echo -n "$ram_percentage" | tr -d '\n')
+  
   # Check for any error conditions
   if [[ -z "$ram_usage" || -z "$total_ram" ]]; then
     echo "RAM Usage Error"
