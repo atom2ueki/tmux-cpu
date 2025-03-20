@@ -3,46 +3,65 @@
 export LANG=C
 export LC_ALL=C
 
+# Cached values to avoid repeated identical commands
+declare -A _cached_values
+
+# Gets tmux option
+# Usage: get_tmux_option <option_name> <default_value>
 get_tmux_option() {
-  local option
-  local default_value
   local option_value
-  option="$1"
-  default_value="$2"
-  option_value="$(tmux show-option -qv "$option")"
-  if [ -z "$option_value" ]; then
-    option_value="$(tmux show-option -gqv "$option")"
+  
+  # Try to get the option value from tmux
+  if tmux_is_running; then
+    option_value=$(tmux show-option -gqv "$1" 2>/dev/null)
+  else
+    option_value=""
   fi
-  if [ -z "$option_value" ]; then
-    echo "$default_value"
+
+  # If the option is not set or tmux is not running, use the default
+  if [[ -z "$option_value" ]]; then
+    echo "$2"
   else
     echo "$option_value"
   fi
 }
 
+# Returns true if tmux is running
+tmux_is_running() {
+  if command -v tmux >/dev/null 2>&1 && [ -n "${TMUX-}" ]; then
+    return 0
+  fi
+  return 1
+}
+
+# Determines if a command exists
+command_exists() {
+  command -v "$1" >/dev/null 2>&1
+}
+
 is_osx() {
-  [ "$(uname)" == "Darwin" ]
-}
-
-is_freebsd() {
-  [ "$(uname)" == "FreeBSD" ]
-}
-
-is_openbsd() {
-  [ "$(uname)" == "OpenBSD" ]
+  [ $(uname) == "Darwin" ]
 }
 
 is_linux() {
-  [ "$(uname)" == "Linux" ]
+  [ $(uname) == "Linux" ]
+}
+
+is_freebsd() {
+  [ $(uname) == "FreeBSD" ]
+}
+
+is_openbsd() {
+  [ $(uname) == "OpenBSD" ]
 }
 
 is_cygwin() {
-  command -v WMIC &>/dev/null
+  command -v WMIC >/dev/null 2>&1
 }
 
 is_linux_iostat() {
-  # Bug in early versions of linux iostat -V return error code
-  iostat -c &>/dev/null
+  # Linux iostat shows CPU (system, user, IOwait, idle) at first line
+  iostat | awk 'NR == 1 { print $0 }' | grep -q "CPU" && grep -q "system" || false
 }
 
 # is second float bigger or equal?
@@ -80,20 +99,14 @@ temp_status() {
 
 cpus_number() {
   if is_linux; then
-    if command_exists "nproc"; then
-      nproc
-    else
-      echo "$(($(sed -n 's/^processor.*:\s*\([0-9]\+\)/\1/p' /proc/cpuinfo | tail -n 1) + 1))"
-    fi
+    echo $(nproc 2>/dev/null || lscpu -p | grep -c "^[0-9]" 2>/dev/null || grep -c "^processor" /proc/cpuinfo 2>/dev/null)
+  elif is_osx; then
+    echo $(sysctl -n hw.ncpu)
+  elif is_freebsd || is_openbsd; then
+    echo $(sysctl -n hw.ncpu)
   else
-    sysctl -n hw.ncpu
+    echo 1
   fi
-}
-
-command_exists() {
-  local command
-  command="$1"
-  command -v "$command" &>/dev/null
 }
 
 get_tmp_dir() {
@@ -137,16 +150,21 @@ put_cache_val() {
   echo -n "$val"
 }
 
+# Cached evaluation of a command
+# Usage: cached_eval <command> [cache_key]
 cached_eval() {
-  local command
-  local key
-  local val
-  command="$1"
-  key="$(basename "$command")"
-  val="$(get_cache_val "$key")"
-  if [ -z "$val" ]; then
-    put_cache_val "$key" "$($command "${@:2}")"
-  else
-    echo -n "$val"
+  local command="$1"
+  local cache_key="${2:-$command}"
+  
+  # Check if result is already cached
+  if [[ -n "${_cached_values[$cache_key]}" ]]; then
+    echo "${_cached_values[$cache_key]}"
+    return
   fi
+  
+  # Evaluate the command and cache the result
+  local result
+  result=$(eval "$command")
+  _cached_values[$cache_key]="$result"
+  echo "$result"
 }

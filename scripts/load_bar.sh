@@ -24,10 +24,18 @@ progress_char="|"
 empty_char=" "
 left_bracket="["
 right_bracket="]"
-low_color=""
-medium_color=""
-high_color=""
-bracket_color=""
+
+# Default colors (One Dark Pro theme)
+default_low_color="#[fg=green]"
+default_medium_color="#[fg=yellow]"
+default_high_color="#[fg=red]"
+default_bracket_color="#[fg=white]"
+
+# Initialize with defaults
+low_color="$default_low_color"
+medium_color="$default_medium_color"
+high_color="$default_high_color"
+bracket_color="$default_bracket_color"
 
 # Parse arguments
 for arg in "$@"; do
@@ -75,10 +83,10 @@ get_settings() {
   right_bracket=$(get_tmux_option "@${type}_right_bracket" "$right_bracket")
   
   # Color settings
-  low_color=$(get_tmux_option "@${type}_low_color" "")
-  medium_color=$(get_tmux_option "@${type}_medium_color" "")
-  high_color=$(get_tmux_option "@${type}_high_color" "")
-  bracket_color=$(get_tmux_option "@${type}_bracket_color" "")
+  low_color=$(get_tmux_option "@${type}_low_color" "$default_low_color")
+  medium_color=$(get_tmux_option "@${type}_medium_color" "$default_medium_color")
+  high_color=$(get_tmux_option "@${type}_high_color" "$default_high_color")
+  bracket_color=$(get_tmux_option "@${type}_bracket_color" "$default_bracket_color")
   
   # Thresholds
   threshold_med=$(get_tmux_option "@${type}_medium_thresh" "$threshold_med")
@@ -123,15 +131,25 @@ determine_color() {
 
 build_progress_bar() {
   # Calculate filled and empty segments
-  local filled_count=$(echo "$percentage * $progress_bar_length / 100" | bc)
-  if (( $(echo "$filled_count > $progress_bar_length" | bc -l) )); then
+  local filled_count=$(echo "scale=0; ($percentage * $progress_bar_length / 100) + 0.5" | bc | awk '{printf "%d", $1}')
+  
+  # Ensure filled_count is at least 0
+  if [[ -z "$filled_count" || "$filled_count" -lt 0 ]]; then
+    filled_count=0
+  fi
+  
+  # Ensure filled_count doesn't exceed progress_bar_length
+  if [[ "$filled_count" -gt "$progress_bar_length" ]]; then
     filled_count=$progress_bar_length
   fi
   
-  local empty_count=$(echo "$progress_bar_length - $filled_count" | bc)
+  local empty_count=$((progress_bar_length - filled_count))
   
   # Start with colored brackets
   local progress_bar="${bracket_color}${left_bracket}"
+  
+  # Debug (remove in production)
+  # echo "Percentage: $percentage, Length: $progress_bar_length, Filled: $filled_count, Empty: $empty_count" >&2
   
   # Add filled section with appropriate color
   for ((i=0; i<filled_count; i++)); do
