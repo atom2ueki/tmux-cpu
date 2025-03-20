@@ -12,13 +12,10 @@ gpu_temp_scale="C"
 gpu_temp_medium_threshold="80"
 gpu_temp_high_threshold="90"
 
-# colors
+# Color variables - will be set from tmux options
 low_color=""
 medium_color=""
 high_color=""
-low_default_color="#[fg=green,bg=default]"
-medium_default_color="#[fg=yellow,bg=default]"
-high_default_color="#[fg=red,bg=default]"
 
 print_gpu_temp() {
   gpu_temp_format=$(get_tmux_option "@gpu_temp_format" "$gpu_temp_format")

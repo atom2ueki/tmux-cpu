@@ -36,7 +36,7 @@ print_gram_usage() {
   
   # Convert from MiB or MB to the requested unit
   if [ "$gram_unit" = "G" ]; then
-    used_gram=$(echo "$used_gram" | awk '{printf "%f", $1 / 1024}')
+    used_gram=$(echo "scale=1; $used_gram / 1024" | bc)
   fi
   
   printf "$gram_usage_format$gram_unit" "$used_gram"
@@ -56,7 +56,7 @@ print_total_gram() {
   
   # Convert from MiB or MB to the requested unit
   if [ "$gram_unit" = "G" ]; then
-    total_gram=$(echo "$total_gram" | awk '{printf "%f", $1 / 1024}')
+    total_gram=$(echo "scale=1; $total_gram / 1024" | bc)
   fi
   
   printf "%.1f$gram_unit" "$total_gram"
@@ -68,5 +68,7 @@ main() {
   else
     print_gram_usage
   fi
+  # Add a newline to properly terminate output
+  echo ""
 }
 main "$@" 

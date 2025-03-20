@@ -25,17 +25,11 @@ empty_char=" "
 left_bracket="["
 right_bracket="]"
 
-# Default colors (these will be overridden by tmux settings)
-default_low_color="#[fg=green]"
-default_medium_color="#[fg=yellow]"
-default_high_color="#[fg=red]"
-default_bracket_color="#[fg=white]"
-
-# Initialize with defaults
-low_color="$default_low_color"
-medium_color="$default_medium_color"
-high_color="$default_high_color"
-bracket_color="$default_bracket_color"
+# Initialize color variables
+low_color=""
+medium_color=""
+high_color=""
+bracket_color=""
 
 # Parse arguments
 for arg in "$@"; do
@@ -82,11 +76,11 @@ get_settings() {
   left_bracket=$(get_tmux_option "@${type}_left_bracket" "$left_bracket")
   right_bracket=$(get_tmux_option "@${type}_right_bracket" "$right_bracket")
   
-  # Color settings
-  low_color=$(get_tmux_option "@${type}_low_color" "$default_low_color")
-  medium_color=$(get_tmux_option "@${type}_medium_color" "$default_medium_color")
-  high_color=$(get_tmux_option "@${type}_high_color" "$default_high_color")
-  bracket_color=$(get_tmux_option "@${type}_bracket_color" "$default_bracket_color")
+  # Color settings - directly from tmux without fallbacks
+  low_color=$(get_tmux_option "@${type}_low_color" "")
+  medium_color=$(get_tmux_option "@${type}_medium_color" "")
+  high_color=$(get_tmux_option "@${type}_high_color" "")
+  bracket_color=$(get_tmux_option "@${type}_bracket_color" "")
   
   # Thresholds
   threshold_med=$(get_tmux_option "@${type}_medium_thresh" "$threshold_med")
@@ -131,8 +125,17 @@ determine_color() {
 
 build_progress_bar() {
   # Calculate filled and empty segments based on percentage
-  local filled_count=$(echo "scale=0; ($percentage * $progress_bar_length / 100) + 0.5" | bc)
-  filled_count=${filled_count:-0}  # Default to 0 if empty
+  # Ensure non-zero percentages show at least one character
+  local filled_count
+  
+  if (( $(echo "$percentage > 0" | bc -l) )) && (( $(echo "$percentage < 100 / $progress_bar_length" | bc -l) )); then
+    # For very small percentages (but not zero), always show at least one character
+    filled_count=1
+  else
+    # Normal calculation for larger percentages with proper rounding
+    filled_count=$(echo "scale=0; ($percentage * $progress_bar_length / 100) + 0.5" | bc)
+    filled_count=${filled_count:-0}  # Default to 0 if empty
+  fi
   
   # Force to integer with awk
   filled_count=$(echo "$filled_count" | awk '{printf "%d", $1}')
@@ -146,7 +149,7 @@ build_progress_bar() {
   
   local empty_count=$((progress_bar_length - filled_count))
   
-  # Start with colored brackets
+  # Start with brackets
   local progress_bar="${bracket_color}${left_bracket}"
   
   # Add filled section with appropriate color
@@ -155,7 +158,6 @@ build_progress_bar() {
     for ((i=0; i<filled_count; i++)); do
       progress_bar="${progress_bar}${progress_char}"
     done
-    # Reset color back to default after filled section
     progress_bar="${progress_bar}#[fg=default]"
   fi
   
@@ -166,13 +168,15 @@ build_progress_bar() {
   
   # Add the value display (with or without total)
   if [[ -n "$total" ]]; then
-    progress_bar="${progress_bar} ${value}/${total}${bracket_color}${right_bracket}"
+    progress_bar="${progress_bar} ${value}/${total}"
   else
-    progress_bar="${progress_bar} ${value}${bracket_color}${right_bracket}"
+    progress_bar="${progress_bar} ${value}"
   fi
   
-  # Final reset to default color
-  echo "${progress_bar}#[fg=default]"
+  # Add closing bracket and reset color
+  progress_bar="${progress_bar}${bracket_color}${right_bracket}#[fg=default]"
+  
+  echo "${progress_bar}"
 }
 
 main() {

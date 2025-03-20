@@ -62,7 +62,6 @@ print_ram_usage() {
   ram_unit=$(get_tmux_option "@ram_unit" "$ram_unit")
   
   used_ram=$(get_used_ram)
-  total_ram=$(get_total_ram)
   
   if [ "$ram_unit" = "G" ]; then
     divisor=1073741824  # 1024^3
@@ -70,8 +69,14 @@ print_ram_usage() {
     divisor=1048576     # 1024^2
   fi
   
-  used_ram_in_unit=$(echo "$used_ram $divisor" | awk '{printf "%f", $1 / $2}')
+  # Ensure we have a valid number for used RAM
+  if [ -z "$used_ram" ] || [ "$used_ram" -eq 0 ]; then
+    used_ram_in_unit=0
+  else
+    used_ram_in_unit=$(echo "scale=1; $used_ram / $divisor" | bc)
+  fi
   
+  # Format with proper precision
   printf "$ram_usage_format$ram_unit" "$used_ram_in_unit"
 }
 
@@ -86,8 +91,14 @@ print_total_ram() {
     divisor=1048576     # 1024^2
   fi
   
-  total_ram_in_unit=$(echo "$total_ram $divisor" | awk '{printf "%f", $1 / $2}')
+  # Ensure we have a valid number for total RAM
+  if [ -z "$total_ram" ] || [ "$total_ram" -eq 0 ]; then
+    total_ram_in_unit=0
+  else
+    total_ram_in_unit=$(echo "scale=1; $total_ram / $divisor" | bc)
+  fi
   
+  # Format with proper precision
   printf "%.1f$ram_unit" "$total_ram_in_unit"
 }
 
@@ -97,5 +108,7 @@ main() {
   else
     print_ram_usage
   fi
+  # Add a newline to properly terminate output
+  echo ""
 }
 main "$@" 

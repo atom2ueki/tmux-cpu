@@ -12,7 +12,7 @@ cpu_temp_scale="C"
 cpu_temp_medium_threshold="80"
 cpu_temp_high_threshold="90"
 
-# colors
+# Color variables - will be set from tmux options
 low_color=""
 medium_color=""
 high_color=""

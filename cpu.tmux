@@ -229,30 +229,9 @@ update_tmux_option() {
   set_tmux_option "$option" "$new_option_value"
 }
 
-# Set up an attractive One Dark Pro formatted status line by default
-setup_default_status_line() {
-  local current_status_right
-  current_status_right=$(tmux show-option -gv "status-right")
-  
-  # Only set the default if the user hasn't configured anything
-  if [ -z "$current_status_right" ] || [ "$current_status_right" == "#{?window_zoomed_flag,[Z],} %H:%M %d-%b-%y" ]; then
-    # Create a nice One Dark Pro themed status line with transparent background
-    tmux set-option -gq "status-right" "\
-#[fg=$onedark_white,bg=default]CPU: #{cpu_load_bar} #{cpu_percentage} #[fg=$onedark_purple,bg=default]#{cpu_temp} | \
-#[fg=$onedark_white,bg=default]RAM: #{ram_load_bar} #{ram_usage} | \
-#[fg=$onedark_white,bg=default]%a %h-%d %H:%M "
-    
-    # Set status line right length to accommodate our template
-    tmux set-option -gq "status-right-length" "100"
-  fi
-}
-
 main() {
   # First apply One Dark Pro theme settings
   apply_one_dark_theme
-  
-  # Set up default status line if user hasn't configured one
-  setup_default_status_line
   
   # Update any template variables in status-right and status-left
   update_tmux_option "status-right"
