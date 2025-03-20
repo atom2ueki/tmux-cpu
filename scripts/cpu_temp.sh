@@ -6,14 +6,18 @@ CURRENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$CURRENT_DIR/helpers.sh"
 
 cpu_temp_format="%2.0f"
-cpu_temp_unit="C"
+cpu_temp_scale="C"
 
 print_cpu_temp() {
   cpu_temp_format=$(get_tmux_option "@cpu_temp_format" "$cpu_temp_format")
-  cpu_temp_unit=$(get_tmux_option "@cpu_temp_unit" "$cpu_temp_unit")
+  cpu_temp_scale=$(get_tmux_option "@cpu_temp_scale" "$cpu_temp_scale")
+  
+  # Set the unit with degree symbol based on scale
+  cpu_temp_unit="°$cpu_temp_scale"
+  
   if command_exists "sensors"; then
     local val
-    if [[ "$cpu_temp_unit" == F ]]; then
+    if [[ "$cpu_temp_scale" == "F" ]]; then
       val="$(sensors -f)"
     else
       val="$(sensors)"
