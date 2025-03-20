@@ -65,9 +65,9 @@ set -g status-right '#{cpu_bg_color} CPU: #{cpu_icon} #{cpu_percentage} | %a %h-
 This is done by introducing format strings that can be added to
 `status-right` option:
 
-- `#{cpu_icon}` - will display a CPU usage progress bar (colored based on load)
+- `#{cpu_load_bar}` - will display a CPU usage progress bar (colored based on load)
 - `#{cpu_percentage}` - will show CPU percentage (averaged across cores)
-- `#{ram_icon}` - will display a RAM usage progress bar (colored based on usage)
+- `#{ram_load_bar}` - will display a RAM usage progress bar (colored based on usage)
 - `#{ram_percentage}` - will show RAM percentage (averaged across cores)
 - `#{ram_usage}` - will show RAM usage in GB or MB
 - `#{total_ram}` - will show total RAM available in GB or MB
@@ -75,9 +75,9 @@ This is done by introducing format strings that can be added to
 
 GPU equivalents also exist:
 
-- `#{gpu_icon}` - will display a GPU usage progress bar (colored based on load)
+- `#{gpu_load_bar}` - will display a GPU usage progress bar (colored based on load)
 - `#{gpu_percentage}` - will show GPU percentage (averaged across devices)
-- `#{gram_icon}` - will display a GPU RAM usage progress bar (colored based on usage)
+- `#{gram_load_bar}` - will display a GPU RAM usage progress bar (colored based on usage)
 - `#{gram_percentage}` - will show GPU RAM percentage (total across devices)
 - `#{gram_usage}` - will show GPU RAM usage in GB or MB
 - `#{total_gram}` - will show total GPU RAM available in GB or MB
