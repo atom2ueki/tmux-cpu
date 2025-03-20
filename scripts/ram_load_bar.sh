@@ -29,5 +29,5 @@ fi
 ram_usage=$("$CURRENT_DIR"/ram_usage.sh)
 ram_usage=$(echo -n "$ram_usage" | tr -d '\n')
 
-# Use the shared load bar component
-"$CURRENT_DIR"/load_bar.sh "ram" "$ram_percentage_raw" "$total_ram/$ram_usage"
+# Use the shared load bar component with usage/total format
+"$CURRENT_DIR"/load_bar.sh "ram" "$ram_percentage_raw" "$ram_usage/$total_ram"

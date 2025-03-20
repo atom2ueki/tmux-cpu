@@ -26,5 +26,5 @@ fi
 gram_usage=$("$CURRENT_DIR"/gram_usage.sh)
 gram_usage=$(echo -n "$gram_usage" | tr -d '\n')
 
-# Use the shared load bar component
-"$CURRENT_DIR"/load_bar.sh "gram" "$gram_percentage_raw" "$total_gram/$gram_usage"
+# Use the shared load bar component with usage/total format
+"$CURRENT_DIR"/load_bar.sh "gram" "$gram_percentage_raw" "$gram_usage/$total_gram"

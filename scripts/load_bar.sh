@@ -63,7 +63,10 @@ bar="${bar}#[fg=default]"
 
 # Generate output content
 content=""
-if [ "$show_percentage" = "true" ] && [[ "$percentage" =~ ^[0-9]+(\.)?[0-9]*$ ]]; then
+if [ -n "$value" ] && [ "$show_value" = "true" ] && ([ "$type" = "ram" ] || [ "$type" = "gram" ]); then
+  # For RAM and GRAM, prioritize showing the value (usage/total)
+  content=" $value"
+elif [ "$show_percentage" = "true" ] && [[ "$percentage" =~ ^[0-9]+(\.)?[0-9]*$ ]]; then
   content=" $(printf "%.1f%%" "$percentage")"
 elif [ -n "$value" ] && [ "$show_value" = "true" ]; then
   content=" $value"
