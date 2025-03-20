@@ -20,11 +20,11 @@ onedark_purple="#c678dd"
 # Theme is applied first, then scripts read the values from tmux options
 # Users can override these values in their own .tmux.conf if desired
 apply_one_dark_theme() {
-  # Set status bar colors
-  tmux set-option -gq "status-style" "bg=$onedark_black,fg=$onedark_white"
+  # Set status bar colors - using default for background allows terminal transparency
+  tmux set-option -gq "status-style" "bg=default,fg=$onedark_white"
   
   # Window status format and colors
-  tmux set-option -gq "window-status-format" "#[fg=$onedark_white,bg=$onedark_black] #I:#W "
+  tmux set-option -gq "window-status-format" "#[fg=$onedark_white,bg=default] #I:#W "
   tmux set-option -gq "window-status-current-format" "#[fg=$onedark_black,bg=$onedark_blue,bold] #I:#W "
   
   # Pane border colors
@@ -98,65 +98,65 @@ apply_one_dark_theme() {
   tmux set-option -gq "@gram_right_bracket" "]"
   tmux set-environment -g "@gram_right_bracket" "]"
   
-  # Set theme colors for all indicators - CPU
-  tmux set-option -gq "@cpu_low_color" "#[fg=$onedark_green,bg=$onedark_black]"
-  tmux set-environment -g "@cpu_low_color" "#[fg=$onedark_green,bg=$onedark_black]"
+  # Set theme colors for all indicators - CPU (using default for background)
+  tmux set-option -gq "@cpu_low_color" "#[fg=$onedark_green,bg=default]"
+  tmux set-environment -g "@cpu_low_color" "#[fg=$onedark_green,bg=default]"
   
-  tmux set-option -gq "@cpu_medium_color" "#[fg=$onedark_yellow,bg=$onedark_black]"
-  tmux set-environment -g "@cpu_medium_color" "#[fg=$onedark_yellow,bg=$onedark_black]"
+  tmux set-option -gq "@cpu_medium_color" "#[fg=$onedark_yellow,bg=default]"
+  tmux set-environment -g "@cpu_medium_color" "#[fg=$onedark_yellow,bg=default]"
   
-  tmux set-option -gq "@cpu_high_color" "#[fg=$onedark_red,bg=$onedark_black]"
-  tmux set-environment -g "@cpu_high_color" "#[fg=$onedark_red,bg=$onedark_black]"
+  tmux set-option -gq "@cpu_high_color" "#[fg=$onedark_red,bg=default]"
+  tmux set-environment -g "@cpu_high_color" "#[fg=$onedark_red,bg=default]"
   
-  # GPU colors
-  tmux set-option -gq "@gpu_low_color" "#[fg=$onedark_green,bg=$onedark_black]"
-  tmux set-environment -g "@gpu_low_color" "#[fg=$onedark_green,bg=$onedark_black]"
+  # GPU colors (using default for background)
+  tmux set-option -gq "@gpu_low_color" "#[fg=$onedark_green,bg=default]"
+  tmux set-environment -g "@gpu_low_color" "#[fg=$onedark_green,bg=default]"
   
-  tmux set-option -gq "@gpu_medium_color" "#[fg=$onedark_yellow,bg=$onedark_black]"
-  tmux set-environment -g "@gpu_medium_color" "#[fg=$onedark_yellow,bg=$onedark_black]"
+  tmux set-option -gq "@gpu_medium_color" "#[fg=$onedark_yellow,bg=default]"
+  tmux set-environment -g "@gpu_medium_color" "#[fg=$onedark_yellow,bg=default]"
   
-  tmux set-option -gq "@gpu_high_color" "#[fg=$onedark_red,bg=$onedark_black]"
-  tmux set-environment -g "@gpu_high_color" "#[fg=$onedark_red,bg=$onedark_black]"
+  tmux set-option -gq "@gpu_high_color" "#[fg=$onedark_red,bg=default]"
+  tmux set-environment -g "@gpu_high_color" "#[fg=$onedark_red,bg=default]"
   
-  # RAM colors
-  tmux set-option -gq "@ram_low_color" "#[fg=$onedark_green,bg=$onedark_black]"
-  tmux set-environment -g "@ram_low_color" "#[fg=$onedark_green,bg=$onedark_black]"
+  # RAM colors (using default for background)
+  tmux set-option -gq "@ram_low_color" "#[fg=$onedark_green,bg=default]"
+  tmux set-environment -g "@ram_low_color" "#[fg=$onedark_green,bg=default]"
   
-  tmux set-option -gq "@ram_medium_color" "#[fg=$onedark_yellow,bg=$onedark_black]"
-  tmux set-environment -g "@ram_medium_color" "#[fg=$onedark_yellow,bg=$onedark_black]"
+  tmux set-option -gq "@ram_medium_color" "#[fg=$onedark_yellow,bg=default]"
+  tmux set-environment -g "@ram_medium_color" "#[fg=$onedark_yellow,bg=default]"
   
-  tmux set-option -gq "@ram_high_color" "#[fg=$onedark_red,bg=$onedark_black]"
-  tmux set-environment -g "@ram_high_color" "#[fg=$onedark_red,bg=$onedark_black]"
+  tmux set-option -gq "@ram_high_color" "#[fg=$onedark_red,bg=default]"
+  tmux set-environment -g "@ram_high_color" "#[fg=$onedark_red,bg=default]"
   
-  # GRAM colors
-  tmux set-option -gq "@gram_low_color" "#[fg=$onedark_green,bg=$onedark_black]"
-  tmux set-environment -g "@gram_low_color" "#[fg=$onedark_green,bg=$onedark_black]"
+  # GRAM colors (using default for background)
+  tmux set-option -gq "@gram_low_color" "#[fg=$onedark_green,bg=default]"
+  tmux set-environment -g "@gram_low_color" "#[fg=$onedark_green,bg=default]"
   
-  tmux set-option -gq "@gram_medium_color" "#[fg=$onedark_yellow,bg=$onedark_black]"
-  tmux set-environment -g "@gram_medium_color" "#[fg=$onedark_yellow,bg=$onedark_black]"
+  tmux set-option -gq "@gram_medium_color" "#[fg=$onedark_yellow,bg=default]"
+  tmux set-environment -g "@gram_medium_color" "#[fg=$onedark_yellow,bg=default]"
   
-  tmux set-option -gq "@gram_high_color" "#[fg=$onedark_red,bg=$onedark_black]"
-  tmux set-environment -g "@gram_high_color" "#[fg=$onedark_red,bg=$onedark_black]"
+  tmux set-option -gq "@gram_high_color" "#[fg=$onedark_red,bg=default]"
+  tmux set-environment -g "@gram_high_color" "#[fg=$onedark_red,bg=default]"
   
-  # Temperature colors - CPU
-  tmux set-option -gq "@cpu_temp_low_color" "#[fg=$onedark_green,bg=$onedark_black]"
-  tmux set-environment -g "@cpu_temp_low_color" "#[fg=$onedark_green,bg=$onedark_black]"
+  # Temperature colors - CPU (using default for background)
+  tmux set-option -gq "@cpu_temp_low_color" "#[fg=$onedark_green,bg=default]"
+  tmux set-environment -g "@cpu_temp_low_color" "#[fg=$onedark_green,bg=default]"
   
-  tmux set-option -gq "@cpu_temp_medium_color" "#[fg=$onedark_yellow,bg=$onedark_black]"
-  tmux set-environment -g "@cpu_temp_medium_color" "#[fg=$onedark_yellow,bg=$onedark_black]"
+  tmux set-option -gq "@cpu_temp_medium_color" "#[fg=$onedark_yellow,bg=default]"
+  tmux set-environment -g "@cpu_temp_medium_color" "#[fg=$onedark_yellow,bg=default]"
   
-  tmux set-option -gq "@cpu_temp_high_color" "#[fg=$onedark_red,bg=$onedark_black]"
-  tmux set-environment -g "@cpu_temp_high_color" "#[fg=$onedark_red,bg=$onedark_black]"
+  tmux set-option -gq "@cpu_temp_high_color" "#[fg=$onedark_red,bg=default]"
+  tmux set-environment -g "@cpu_temp_high_color" "#[fg=$onedark_red,bg=default]"
   
-  # Temperature colors - GPU
-  tmux set-option -gq "@gpu_temp_low_color" "#[fg=$onedark_green,bg=$onedark_black]"
-  tmux set-environment -g "@gpu_temp_low_color" "#[fg=$onedark_green,bg=$onedark_black]"
+  # Temperature colors - GPU (using default for background)
+  tmux set-option -gq "@gpu_temp_low_color" "#[fg=$onedark_green,bg=default]"
+  tmux set-environment -g "@gpu_temp_low_color" "#[fg=$onedark_green,bg=default]"
   
-  tmux set-option -gq "@gpu_temp_medium_color" "#[fg=$onedark_yellow,bg=$onedark_black]"
-  tmux set-environment -g "@gpu_temp_medium_color" "#[fg=$onedark_yellow,bg=$onedark_black]"
+  tmux set-option -gq "@gpu_temp_medium_color" "#[fg=$onedark_yellow,bg=default]"
+  tmux set-environment -g "@gpu_temp_medium_color" "#[fg=$onedark_yellow,bg=default]"
   
-  tmux set-option -gq "@gpu_temp_high_color" "#[fg=$onedark_red,bg=$onedark_black]"
-  tmux set-environment -g "@gpu_temp_high_color" "#[fg=$onedark_red,bg=$onedark_black]"
+  tmux set-option -gq "@gpu_temp_high_color" "#[fg=$onedark_red,bg=default]"
+  tmux set-environment -g "@gpu_temp_high_color" "#[fg=$onedark_red,bg=default]"
 }
 
 cpu_interpolation=(
@@ -223,11 +223,11 @@ setup_default_status_line() {
   
   # Only set the default if the user hasn't configured anything
   if [ -z "$current_status_right" ] || [ "$current_status_right" == "#{?window_zoomed_flag,[Z],} %H:%M %d-%b-%y" ]; then
-    # Create a nice One Dark Pro themed status line
+    # Create a nice One Dark Pro themed status line with transparent background
     tmux set-option -gq "status-right" "\
-#[fg=$onedark_white]CPU #[fg=$onedark_cyan]#{cpu_percentage} #[fg=$onedark_purple]#{cpu_temp} #{cpu_load_bar} | \
-#[fg=$onedark_white]RAM #[fg=$onedark_cyan]#{ram_usage} #{ram_load_bar} | \
-#[fg=$onedark_white]%a %h-%d %H:%M "
+#[fg=$onedark_white,bg=default]CPU #[fg=$onedark_cyan,bg=default]#{cpu_percentage} #[fg=$onedark_purple,bg=default]#{cpu_temp} #{cpu_load_bar} | \
+#[fg=$onedark_white,bg=default]RAM #[fg=$onedark_cyan,bg=default]#{ram_usage} #{ram_load_bar} | \
+#[fg=$onedark_white,bg=default]%a %h-%d %H:%M "
     
     # Set status line right length to accommodate our template
     tmux set-option -gq "status-right-length" "100"

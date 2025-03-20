@@ -112,7 +112,7 @@ CPU usage higher than 80%:<br/>
 
 ## Customization
 
-The plugin applies One Dark Pro theme by default with elegant styling for all metrics. If you want to customize any of the settings, here are all available options:
+The plugin applies One Dark Pro theme by default with elegant styling for all metrics. It uses a transparent background (`bg=default`) that inherits your terminal's background settings. If you want to customize any of the settings, here are all available options:
 
 ```shell
 # Progress bar settings (load bars use "■" character by default)
@@ -122,11 +122,11 @@ The plugin applies One Dark Pro theme by default with elegant styling for all me
 @cpu_left_bracket "[" # left bracket for the progress bar
 @cpu_right_bracket "]" # right bracket for the progress bar
 
-# One Dark Pro theme colors are applied by default
+# One Dark Pro theme colors are applied by default with transparent backgrounds
 # You can override them with your own custom colors:
-@cpu_low_color "#[fg=green,bg=black]" # color when usage is low
-@cpu_medium_color "#[fg=yellow,bg=black]" # color when usage is medium
-@cpu_high_color "#[fg=red,bg=black]" # color when usage is high
+@cpu_low_color "#[fg=green,bg=default]" # color when usage is low (with transparent background)
+@cpu_medium_color "#[fg=yellow,bg=default]" # color when usage is medium (with transparent background)
+@cpu_high_color "#[fg=red,bg=default]" # color when usage is high (with transparent background)
 
 @cpu_percentage_format "%3.1f%%" # printf format to use to display percentage
 
@@ -168,6 +168,17 @@ Don't forget to reload the tmux environment (`$ tmux source-file ~/.tmux.conf`) 
 
 ### Troubleshooting
 
+#### Transparency in Status Bar
+
+By default, the plugin uses `bg=default` for the status bar background, which enables transparency if your terminal supports it. This allows the status bar to inherit your terminal's background settings.
+
+If you prefer a solid background, add the following to your `.tmux.conf`:
+
+```shell
+# Set a solid background color
+set -g status-style bg=black  # Or any other color you prefer
+```
+
 #### Green Background in Status Bar
 
 If your status bar has unwanted background colors when using the load bar or percentage indicators, add the following to your `.tmux.conf`:
@@ -175,15 +186,6 @@ If your status bar has unwanted background colors when using the load bar or per
 ```shell
 # Fix background color issue
 set -g status-style bg=black  # Or any other color you prefer
-```
-
-This happens because some terminals might not correctly interpret the background color settings. You can also fix this by explicitly setting background colors in your `.tmux.conf`:
-
-```shell
-# Set explicit background for all CPU indicators
-set -g @cpu_low_color "#[fg=green,bg=black]"    
-set -g @cpu_medium_color "#[fg=yellow,bg=black]"
-set -g @cpu_high_color "#[fg=red,bg=black]"
 ```
 
 ### Tmux Plugins
